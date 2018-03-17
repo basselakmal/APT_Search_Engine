@@ -1,6 +1,4 @@
-# APT_Search_Engine
-
-APT Search Engine Project
+# APT Search Engine Project
 
 IDE: Intellij Idea
 
