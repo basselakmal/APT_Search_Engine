@@ -26,7 +26,7 @@ public class WebCrawler extends Thread {
             }
             catch (Exception e)
             {
-                System.out.println("Error: " + e.getMessage() + "\nURL: " + Crawling.get(0));
+                System.out.println("Error: " + e.getMessage() + "\nURL: " + Crawling.get(0).getAnchorURL());
                 Crawling.removeElementAt(0);
                 continue;
             }
