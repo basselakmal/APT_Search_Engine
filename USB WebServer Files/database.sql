@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Mar 06, 2018 at 11:15 PM
+-- Generation Time: Mar 19, 2018 at 04:43 PM
 -- Server version: 5.6.13
 -- PHP Version: 5.4.17
 
@@ -36,7 +36,6 @@ CREATE TABLE IF NOT EXISTS `crawledpages` (
   PRIMARY KEY (`domainURL`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
-
 -- --------------------------------------------------------
 
 --
@@ -46,9 +45,9 @@ CREATE TABLE IF NOT EXISTS `crawledpages` (
 CREATE TABLE IF NOT EXISTS `domain_referrer` (
   `domainURL` varchar(200) NOT NULL,
   `referrerURL` varchar(200) NOT NULL,
+  `isIndexed` tinyint(1) NOT NULL DEFAULT '0',
   PRIMARY KEY (`domainURL`,`referrerURL`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
