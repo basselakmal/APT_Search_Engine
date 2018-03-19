@@ -17,7 +17,7 @@ public class DB_Manager {
         dataSource.setPassword("usbw");
         dataSource.setServerName("localhost");
         dataSource.setPortNumber(3307);
-        dataSource.setDatabaseName("WebCrawler");
+        dataSource.setDatabaseName("webcrawler");
 
     }
 
