@@ -11,15 +11,31 @@ import java.util.regex.Pattern;
 
 public class WebCrawler extends Thread {
 
+    Vector<Anchor> Crawled = null;
+    Vector <Anchor> Crawling = null;
+
+    public WebCrawler(){
+        //Load Crawled and Crawling from the database
+        try{
+            DB_Manager Man = new DB_Manager();
+            Crawled = Man.getCrawledAnchors();
+            Crawling = Man.getCrawlingAnchors();
+        }
+        catch (Exception e)
+        {
+            System.out.println("Crawler Constructor Error: " + e.getMessage());
+        }
+
+    }
     public void run() {
-        Vector<Anchor> Crawled = new Vector<Anchor>();
 
-        String StartURL = "https://www.tutorialspoint.com/java/java_string_matches.htm";
+        String StartURL = "http://localhost/CrawlerTest/";
         Anchor anchor = new Anchor(StartURL, StartURL);
-        Vector <Anchor> Crawling = new Vector<Anchor>();
-
-        Crawling.add(anchor);
-        InsertCrawling(anchor);
+        if(Crawling.size()==0)
+        {
+            Crawling.add(anchor);
+            InsertCrawling(anchor);
+        }
         while(Crawling.size() > 0)
         {
             try
