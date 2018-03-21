@@ -9,10 +9,20 @@ import java.util.Vector;
 
 public class WebCrawler extends Thread {
 
-    public void run() {
-        Vector<Anchor> Crawled = new Vector<Anchor>();
-
-        String StartURL = "https://stackoverflow.com/";
+    public String StartURL = "https://stackoverflow.com/";
+    public WebCrawler ()
+    {
+        
+    }
+    public WebCrawler(String URL)
+    {
+        this.StartURL = URL;
+    }
+ 
+    public void run() 
+    {
+        Vector<Anchor> Crawled = new Vector<Anchor>();        
+        System.out.println("Start crawling from website " + this.StartURL);
         Anchor anchor = new Anchor(StartURL, StartURL);
         Vector <Anchor> Crawling = new Vector<Anchor>();
 
@@ -44,7 +54,7 @@ public class WebCrawler extends Thread {
         String domainURL = Crawling.get(0).getAnchorURL();
         HashSet<String> referrerURLs = Crawling.get(0).getReferrerURLs();
 
-        Document document = Jsoup.connect(domainURL).get();
+        Document document = Jsoup.connect(domainURL).userAgent("Mozilla").get();
 
         //Fetching all links from page at url: domainURL, and adding them to the crawling list (To be crawled)
         Elements Links = document.getElementsByTag("a");
