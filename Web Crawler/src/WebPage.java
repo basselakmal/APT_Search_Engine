@@ -12,8 +12,6 @@ public class WebPage {
     private String Keywords;
     private String Description;
     private String domainURL;
-    private String body;
-    //private HashSet<String> referrerURLs;
     private Document document;
     private Elements HeaderLines;
     private Elements MetaTags;
@@ -21,7 +19,6 @@ public class WebPage {
     /* Constructor used for crawling */
     public WebPage(String domainURL) throws IOException {
         this.domainURL = domainURL;
-        //this.referrerURLs = referrerURLs;
         document = Jsoup.connect(domainURL).get();
     }
 
@@ -79,6 +76,7 @@ public class WebPage {
         }
        return true;// Return allowed
     }
+    
     public boolean insertToDatabase()
     {
         DB_Manager DB_Man = new DB_Manager();
@@ -94,10 +92,6 @@ public class WebPage {
             return true;
         return false;
     }
-    public Document getDocument(){
-        return document;
-    }
-
 
     public void printInfo()
     {
@@ -105,13 +99,6 @@ public class WebPage {
         System.out.println("Keywords: " + Keywords);
         System.out.println("Description: " + Description);
         System.out.println("Page URL: " + domainURL);
-       /*
-        System.out.println("Referrer URLs:");
-
-        for(String referrerURL : referrerURLs)
-            System.out.println("\t" + referrerURL);
-        */
         System.out.println("\n*********************************************************************************\n");
-
     }
 }
