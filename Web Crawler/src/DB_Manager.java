@@ -17,7 +17,7 @@ public class DB_Manager {
         dataSource.setPassword("usbw");
         dataSource.setServerName("localhost");
         dataSource.setPortNumber(3307);
-        dataSource.setDatabaseName("webcrawler");
+        dataSource.setDatabaseName("WebCrawler");
 
     }
 
@@ -55,6 +55,60 @@ public class DB_Manager {
         conn.close();
 
         return objectVector;
+    }
+	
+	public Vector<Anchor> getCrawledAnchors() throws SQLException {
+        conn = dataSource.getConnection();
+        Statement stmt = (Statement) conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+		String sqlQuery = "SELECT domainURL, referrerURL FROM domain_referrer WHERE isCrawled = 1";
+        ResultSet rs = stmt.executeQuery(sqlQuery);
+
+        Vector<Anchor> Crawled = new Vector<Anchor>();
+		String LastURL = "";
+        while(rs.next()) {
+			if(rs.getString("domainURL") == LastURL)
+			{
+				//Add referrerURL
+				Crawled.lastElement().addReferrerURL(rs.getString("referrerURL"));
+			}
+			else {
+                LastURL = rs.getString("domainURL");
+                Crawled.add(new Anchor(rs.getString("domainURL"), rs.getString("referrerURL")));
+            }
+        }
+
+        rs.close();
+        stmt.close();
+        conn.close();
+
+        return Crawled;
+    }
+
+    public Vector<Anchor> getCrawlingAnchors() throws SQLException {
+        conn = dataSource.getConnection();
+        Statement stmt = (Statement) conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+        String sqlQuery = "SELECT domainURL, referrerURL FROM domain_referrer WHERE isCrawled = 0";
+        ResultSet rs = stmt.executeQuery(sqlQuery);
+
+        Vector<Anchor> Crawling = new Vector<Anchor>();
+        String LastURL = "";
+        while(rs.next()) {
+            if(rs.getString("domainURL") == LastURL)
+            {
+                //Add referrerURL
+                Crawling.lastElement().addReferrerURL(rs.getString("referrerURL"));
+            }
+            else {
+                LastURL = rs.getString("domainURL");
+                Crawling.add(new Anchor(rs.getString("domainURL"), rs.getString("referrerURL")));
+            }
+        }
+
+        rs.close();
+        stmt.close();
+        conn.close();
+
+        return Crawling;
     }
 
     public boolean executeNonQuery(String sqlQuery) {
