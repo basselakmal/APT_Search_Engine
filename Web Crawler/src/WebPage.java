@@ -12,6 +12,7 @@ public class WebPage {
     private String Keywords;
     private String Description;
     private String domainURL;
+    private String body;
     //private HashSet<String> referrerURLs;
     private Document document;
     private Elements HeaderLines;
@@ -46,6 +47,38 @@ public class WebPage {
         Keywords = Keywords.replaceAll("[^a-zA-Z0-9 ]", "");
     }
 
+
+    public boolean isAllowedByRobot(String domainURL)
+    {
+        String e = document.body().text();
+        String[] tokens = e.split(" ");
+        boolean userAgent = false;
+        boolean ourBot = false;
+        boolean disallow = false;
+        boolean allow = false;
+        for (String t : tokens) {
+            if (t.indexOf('#') != 0) {
+                if (disallow) {
+                    disallow = false;
+                    if (t.equals("/") || domainURL.contains(t) )
+                        return false; //Return Not allowed
+                } else if (allow) {
+                    allow = false;
+                    if (t.equals("/") || domainURL.contains(t))
+                        return true; //Return allowed
+                } else if (t.equals("*") || t.equals("ourBot")) {
+                    ourBot = true;
+                } else if (ourBot && t.equals("Disallow:")) {
+                    disallow = true;
+                } else if (ourBot && t.equals("Allow:")) {
+                    allow = true;
+                } else
+                    ourBot = false;
+
+            }
+        }
+       return true;// Return allowed
+    }
     public boolean insertToDatabase()
     {
         DB_Manager DB_Man = new DB_Manager();
@@ -61,6 +94,10 @@ public class WebPage {
             return true;
         return false;
     }
+    public Document getDocument(){
+        return document;
+    }
+
 
     public void printInfo()
     {
