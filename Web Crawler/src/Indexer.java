@@ -5,12 +5,13 @@ public class Indexer extends Thread{
 
     public void run()
     {
+        while (true){
         try
         {
             DB_Manager DB_Man = new DB_Manager();
             int failed =0;
 
-            Vector<Object> domainURLs = DB_Man.getColumnData("domainURL", "SELECT DISTINCT domainURL FROM domain_referrer WHERE isIndexed = 0;");
+            Vector<Object> domainURLs = DB_Man.getColumnData("domainURL", "SELECT DISTINCT domainURL FROM domain_referrer WHERE isIndexed = 0 AND isCrawled = 1;");
 
             for (Object domainURL : domainURLs) {
                 try {
@@ -27,13 +28,12 @@ public class Indexer extends Thread{
                     failed ++;
                 }
             }
-            System.out.println("Failed to add: " + failed);
+            //System.out.println("Failed to add: " + failed);
         }
         catch (Exception e)
         {
             System.out.println("Indexer Database Error: " + e.getMessage());
         }
-
-
+    }
     }
 }
