@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 4.0.4.2
--- http://www.phpmyadmin.net
+-- version 4.0.10.18
+-- https://www.phpmyadmin.net
 --
 -- Host: localhost
--- Generation Time: Mar 19, 2018 at 04:43 PM
+-- Generation Time: Mar 21, 2018 at 09:56 PM
 -- Server version: 5.6.13
 -- PHP Version: 5.4.17
 
@@ -19,8 +19,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `webcrawler`
 --
-CREATE DATABASE IF NOT EXISTS `webcrawler` DEFAULT CHARACTER SET latin1 COLLATE latin1_swedish_ci;
-USE `webcrawler`;
 
 -- --------------------------------------------------------
 
@@ -46,6 +44,7 @@ CREATE TABLE IF NOT EXISTS `domain_referrer` (
   `domainURL` varchar(200) NOT NULL,
   `referrerURL` varchar(200) NOT NULL,
   `isIndexed` tinyint(1) NOT NULL DEFAULT '0',
+  `isCrawled` tinyint(4) NOT NULL DEFAULT '0',
   PRIMARY KEY (`domainURL`,`referrerURL`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
