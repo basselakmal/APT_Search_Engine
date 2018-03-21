@@ -10,7 +10,7 @@ public class runner
     {
         try 
         {
-            //Provide a multithreaded crawler implementation where the user can control the number of threads before starting the crawler.
+        /*    //Provide a multithreaded crawler implementation where the user can control the number of threads before starting the crawler.
             System.out.println("Enter The Number of Multithreaded crawlers :- ");
             BufferedReader consolereader = new BufferedReader(new InputStreamReader(System.in));
             int n = Integer.parseInt(consolereader.readLine());
@@ -20,11 +20,15 @@ public class runner
                 //Thread webCrawler = new Thread(new WebCrawler("https://google.com"));
                 webCrawler.start();
             }
+          */
+
+            Thread webCrawler = new WebCrawler();
             Thread indexer = new Indexer();
             indexer.start();
+            webCrawler.start();
         
         }
-        catch (IOException | NumberFormatException e) 
+        catch (Exception e)
         {
             System.out.println(e);
         }  
