@@ -66,14 +66,14 @@ public class DB_Manager {
         Vector<Anchor> Crawled = new Vector<Anchor>();
 		String LastURL = "";
         while(rs.next()) {
-			if(rs.getString("domainURL") == LastURL)
+			if(rs.getString("domainURL").equals(LastURL))
 			{
 				//Add referrerURL
 				Crawled.lastElement().addReferrerURL(rs.getString("referrerURL"));
 			}
 			else {
                 LastURL = rs.getString("domainURL");
-                Crawled.add(new Anchor(rs.getString("domainURL"), rs.getString("referrerURL")));
+                Crawled.add(new Anchor(rs.getString("referrerURL"), rs.getString("domainURL")));
             }
         }
 
