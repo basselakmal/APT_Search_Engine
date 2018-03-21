@@ -24,4 +24,8 @@ public class Anchor {
         this.referrerURLs.addAll(referrerURLs);
     }
 
+    public void addReferrerURL(String referrerURL)
+    {
+        this.referrerURLs.add(referrerURL);
+    }
 }
