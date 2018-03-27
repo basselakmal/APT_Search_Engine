@@ -6,7 +6,8 @@ import java.util.Vector;
 import java.util.HashSet;
 import java.io.IOException;
 
-public class WebPage {
+public class WebPage 
+{
     private Vector<Anchor> anchors;
     private String Title;
     private String Keywords;
@@ -17,12 +18,14 @@ public class WebPage {
     private Elements MetaTags;
 
     /* Constructor used for crawling */
-    public WebPage(String domainURL) throws IOException {
+    public WebPage(String domainURL) throws IOException 
+    {
         this.domainURL = domainURL;
-        document = Jsoup.connect(domainURL).get();
+        document = Jsoup.connect(domainURL).userAgent("Mozilla").get();
     }
 
-    public void parseDocument(){
+    public void parseDocument()
+    {
         Title = document.title();
         MetaTags = document.getElementsByTag("meta");
         for(Element MetaTag : MetaTags)
@@ -54,22 +57,33 @@ public class WebPage {
         boolean disallow = false;
         boolean allow = false;
         for (String t : tokens) {
-            if (t.indexOf('#') != 0) {
-                if (disallow) {
+            if (t.indexOf('#') != 0) 
+            {
+                if (disallow) 
+                {
                     disallow = false;
-                    if (t.equals("/") || domainURL.contains(t) )
+                    if (t.equals("/") || domainURL.contains(t))
                         return false; //Return Not allowed
-                } else if (allow) {
+                } 
+                else if (allow) 
+                {
                     allow = false;
                     if (t.equals("/") || domainURL.contains(t))
                         return true; //Return allowed
-                } else if (t.equals("*") || t.equals("ourBot")) {
+                }
+                else if (t.equals("*") || t.equals("ourBot")) 
+                {
                     ourBot = true;
-                } else if (ourBot && t.equals("Disallow:")) {
+                }
+                else if (ourBot && t.equals("Disallow:")) 
+                {
                     disallow = true;
-                } else if (ourBot && t.equals("Allow:")) {
+                }
+                else if (ourBot && t.equals("Allow:")) 
+                {
                     allow = true;
-                } else
+                }
+                else
                     ourBot = false;
 
             }
@@ -101,4 +115,5 @@ public class WebPage {
         System.out.println("Page URL: " + domainURL);
         System.out.println("\n*********************************************************************************\n");
     }
+    
 }
