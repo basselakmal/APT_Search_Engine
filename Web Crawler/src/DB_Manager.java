@@ -9,26 +9,27 @@ import java.sql.Connection;
 import java.util.List;
 import java.util.Vector;
 
-public class DB_Manager {
+public class DB_Manager 
+{
     private MysqlDataSource dataSource = new MysqlDataSource();
     private Connection conn;
-    public DB_Manager(){
+    public DB_Manager()
+    {
         dataSource.setUser("root");
         dataSource.setPassword("usbw");
         dataSource.setServerName("localhost");
         dataSource.setPortNumber(3307);
         dataSource.setDatabaseName("WebCrawler");
-
     }
 
-    public Vector<Object> getColumnData(int columnIndex, String sqlQuery) throws SQLException {
+    public Vector<Object> getColumnData(int columnIndex, String sqlQuery) throws SQLException 
+    {
         conn = dataSource.getConnection();
         Statement stmt = (Statement) conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         ResultSet rs = stmt.executeQuery(sqlQuery);
-
         Vector<Object> objectVector = new Vector<Object>();
-
-        while(rs.next()) {
+        while(rs.next()) 
+        {
             objectVector.add(rs.getObject(columnIndex));
         }
 
@@ -39,14 +40,16 @@ public class DB_Manager {
         return objectVector;
     }
 
-    public Vector<Object> getColumnData(String columnLabel, String sqlQuery) throws SQLException {
+    public Vector<Object> getColumnData(String columnLabel, String sqlQuery) throws SQLException 
+    {
         conn = dataSource.getConnection();
         Statement stmt = (Statement) conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         ResultSet rs = stmt.executeQuery(sqlQuery);
 
         Vector<Object> objectVector = new Vector<Object>();
 
-        while(rs.next()) {
+        while(rs.next()) 
+        {
             objectVector.add(rs.getObject(columnLabel));
         }
 
@@ -57,21 +60,24 @@ public class DB_Manager {
         return objectVector;
     }
 	
-	public Vector<Anchor> getCrawledAnchors() throws SQLException {
+    public Vector<Anchor> getCrawledAnchors() throws SQLException 
+    {
         conn = dataSource.getConnection();
         Statement stmt = (Statement) conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
-		String sqlQuery = "SELECT domainURL, referrerURL FROM domain_referrer WHERE isCrawled = 1";
+	String sqlQuery = "SELECT domainURL, referrerURL FROM domain_referrer WHERE isCrawled = 1";
         ResultSet rs = stmt.executeQuery(sqlQuery);
 
         Vector<Anchor> Crawled = new Vector<Anchor>();
-		String LastURL = "";
-        while(rs.next()) {
-			if(rs.getString("domainURL").equals(LastURL))
-			{
-				//Add referrerURL
-				Crawled.lastElement().addReferrerURL(rs.getString("referrerURL"));
-			}
-			else {
+	String LastURL = "";
+        while(rs.next()) 
+        {
+            if(rs.getString("domainURL").equals(LastURL))
+            {
+		//Add referrerURL
+		Crawled.lastElement().addReferrerURL(rs.getString("referrerURL"));
+            }
+            else 
+            {
                 LastURL = rs.getString("domainURL");
                 Crawled.add(new Anchor(rs.getString("referrerURL"), rs.getString("domainURL")));
             }
@@ -84,7 +90,8 @@ public class DB_Manager {
         return Crawled;
     }
 
-    public Vector<Anchor> getCrawlingAnchors() throws SQLException {
+    public Vector<Anchor> getCrawlingAnchors() throws SQLException 
+    {
         conn = dataSource.getConnection();
         Statement stmt = (Statement) conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         String sqlQuery = "SELECT domainURL, referrerURL FROM domain_referrer WHERE isCrawled = 0";
@@ -92,13 +99,15 @@ public class DB_Manager {
 
         Vector<Anchor> Crawling = new Vector<Anchor>();
         String LastURL = "";
-        while(rs.next()) {
+        while(rs.next()) 
+        {
             if(rs.getString("domainURL") == LastURL)
             {
                 //Add referrerURL
                 Crawling.lastElement().addReferrerURL(rs.getString("referrerURL"));
             }
-            else {
+            else 
+            {
                 LastURL = rs.getString("domainURL");
                 Crawling.add(new Anchor(rs.getString("domainURL"), rs.getString("referrerURL")));
             }
@@ -111,20 +120,24 @@ public class DB_Manager {
         return Crawling;
     }
 
-    public boolean executeNonQuery(String sqlQuery) {
-        try {
+    public boolean executeNonQuery(String sqlQuery) 
+    {
+        try 
+        {
             conn = dataSource.getConnection();
             Statement stmt = (Statement) conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 
             stmt.execute(sqlQuery);
             return true;
         }
-        catch (SQLException ex) {
+        catch (SQLException ex) 
+        {
             return false;
         }
     }
 
-    public Object executeScalar(String sqlQuery) throws SQLException {
+    public Object executeScalar(String sqlQuery) throws SQLException 
+    {
         conn = dataSource.getConnection();
         Statement stmt = (Statement) conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
         ResultSet rs = stmt.executeQuery(sqlQuery);
@@ -136,4 +149,5 @@ public class DB_Manager {
         conn.close();
         return obj;
     }
+    
 }

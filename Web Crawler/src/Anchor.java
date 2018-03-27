@@ -1,21 +1,25 @@
 import java.util.HashSet;
 
-public class Anchor {
+public class Anchor 
+{
     private HashSet<String> referrerURLs = new HashSet<String>();
     private String anchorURL;
 
     /* Constructors */
-    public Anchor(String referrerURL, String anchorURL) {
+    public Anchor(String referrerURL, String anchorURL) 
+    {
         this.referrerURLs.add(referrerURL);
         this.anchorURL = anchorURL;
     }
 
     /* Getters */
-    public HashSet<String> getReferrerURLs() {
+    public HashSet<String> getReferrerURLs() 
+    {
         return referrerURLs;
     }
 
-    public String getAnchorURL() {
+    public String getAnchorURL() 
+    {
         return anchorURL;
     }
 
@@ -28,4 +32,5 @@ public class Anchor {
     {
         this.referrerURLs.add(referrerURL);
     }
+    
 }
