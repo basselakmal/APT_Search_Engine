@@ -1,39 +1,30 @@
 import java.util.Vector;
 
 public class Indexer extends Thread{
-    Vector<WebPage> FinishedPages = new Vector<WebPage>();
 
     public void run()
     {
         while (true){
-        try
-        {
-            DB_Manager DB_Man = new DB_Manager();
-            int failed =0;
 
-            Vector<Object> domainURLs = DB_Man.getColumnData("domainURL", "SELECT DISTINCT domainURL FROM domain_referrer WHERE isIndexed = 0 AND isCrawled = 1;");
+            try {
+                String domainURL = null;
+                domainURL = IndexerRunner.getURL();
+                if(domainURL == null)
+                    continue;
 
-            for (Object domainURL : domainURLs) {
-                try {
-                    WebPage webPage = new WebPage(domainURL.toString());
-                    webPage.parseDocument();
-                    webPage.insertToDatabase();
-                    FinishedPages.add(webPage);
-                    webPage.updateIndexedStatus();
-                    webPage.printInfo();
-                }
-                catch(Exception e)
-                {
-                    System.out.println("Indexer Error: " + e.getMessage());
-                    failed ++;
-                }
+                WebPage webPage = new WebPage(domainURL);
+                webPage.parseDocument();
+                webPage.tokenizePage();
+                webPage.insertToDatabase();
+                IndexerRunner.FinishedPages.add(webPage);
+                webPage.updateIndexedStatus();
+                System.out.println("Thread: " + Thread.currentThread().getName() + " indexed the following:");
+                webPage.printInfo();
             }
-            //System.out.println("Failed to add: " + failed);
-        }
-        catch (Exception e)
-        {
-            System.out.println("Indexer Database Error: " + e.getMessage());
-        }
+            catch(Exception e)
+            {
+                System.out.println("Indexer Error: " + e.getMessage());
+            }
     }
     }
 }
