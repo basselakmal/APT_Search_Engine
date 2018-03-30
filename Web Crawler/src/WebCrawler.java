@@ -3,7 +3,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
+import java.io.*;
 import java.util.HashSet;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -11,138 +11,103 @@ import java.util.regex.Pattern;
 
 public class WebCrawler extends Thread {
 
-    Vector<Anchor> Crawled = null;
-    Vector <Anchor> Crawling = null;
+    DB_Manager DB_Man = new DB_Manager();
+    Utilities Utl = new Utilities();
 
     public WebCrawler(){
-        //Load Crawled and Crawling from the database
-        try{
-            DB_Manager Man = new DB_Manager();
-            Crawled = Man.getCrawledAnchors();
-            Crawling = Man.getCrawlingAnchors();
-        }
-        catch (Exception e)
-        {
-            System.out.println("Crawler Constructor Error: " + e.getMessage());
-        }
 
     }
+
     public void run() {
 
-        String StartURL = "http://localhost/CrawlerTest/";
-        Anchor anchor = new Anchor(StartURL, StartURL);
-        if(Crawling.size()==0)
-        {
-            Crawling.add(anchor);
-            InsertCrawling(anchor);
-        }
-        while(Crawling.size() > 0)
+        while(CrawlerRunner.Crawled.size() < CrawlerRunner.Max)
         {
             try
             {
-                Crawl(Crawled, Crawling);
+                Crawl();
             }
             catch (Exception e)
             {
-                System.out.println("Error: " + e.getMessage() + "\nURL: " + Crawling.get(0).getAnchorURL());
-                Crawling.removeElementAt(0);
-                continue;
+                //System.out.println("Error: " + e.getMessage());
+                //System.out.println("URL: " + Crawling.get(0).getAnchorURL());
+                synchronized (CrawlerRunner.Crawling){
+                    if(CrawlerRunner.Crawling.size() > 0)
+                        CrawlerRunner.Crawling.removeElementAt(0);
+                    continue;
+                }
             }
         }
-
     }
 
-    public void Crawl(Vector <Anchor> Crawled, Vector <Anchor> Crawling) throws IOException {
-        if(isCrawled(Crawling.get(0), Crawled)) {
-            updateCrawledStatus(Crawling.get(0)); //Insert crawled page to database (for updating the referrer urls)
+    public synchronized Anchor getLink(){
+        Anchor link = null;
+        if(CrawlerRunner.Crawling.size() > 0)
+        {
+            link = CrawlerRunner.Crawling.get(0);
+            CrawlerRunner.Crawling.removeElementAt(0);
+        }
+        return link;
+    }
 
-            Crawling.remove(0);
+    public void Crawl() throws IOException {
+        Anchor link = getLink();
+
+        if(link == null)
+            return;
+
+        if(isCrawled(link)) {
+            DB_Man.updateCrawledStatus(link); //Insert crawled page to database (for updating the referrer urls)
+            System.out.println("Removed Invalid Link: " + link.getAnchorURL());
             return;
         }
 
-        String domainURL = Crawling.get(0).getAnchorURL();
-        HashSet<String> referrerURLs = Crawling.get(0).getReferrerURLs();
+        System.out.println("Thread " + Thread.currentThread().getName() + " is processing link: " + link.getAnchorURL());
+        String domainURL = link.getAnchorURL();
+        HashSet<String> referrerURLs = link.getReferrerURLs();
 
-        Document document = Jsoup.connect(domainURL).get();
+        File f = new File("pages\\" + link.getAnchorHash() + ".txt");
+        Document document = Utl.DownloadPage(link);
+        if(document == null || !Utl.isHTML(document) || !Utl.robotAllowed(link.getAnchorURL())){
+            //Invalid link. Remove it from the database!
+            DB_Man.removeLink(link);
+            return;
+        }
 
         //Fetching all links from page at url: domainURL, and adding them to the crawling list (To be crawled)
-        Elements Links = document.getElementsByTag("a");
-        for (Element Link : Links) {
+        Elements Links = document.body().getElementsByTag("a");
+        HashSet<String> linksSet = new HashSet<String>();
+
+        for(Element Link : Links)
             if(!Link.absUrl("href").replace(" ", "").equals(""))
             {
-                Anchor tempAnchor = new Anchor(domainURL, Link.absUrl("href"));
-                Crawling.add(tempAnchor);
-                InsertCrawling(tempAnchor);
+                String url = Link.absUrl("href");
+                String res = "";
+                if(url.contains("#"))
+                    res = url.substring(0, url.indexOf('#'));
+                else
+                    res = url;
+                linksSet.add(res);
             }
+
+        System.out.println("URL: " +link.getAnchorURL() + ", Links Count: " + linksSet.size());
+        for (String Link : linksSet) {
+            if(CrawlerRunner.Crawled.size() >= CrawlerRunner.Max)
+                return;
+            Anchor tempAnchor = new Anchor(domainURL, Link);
+            CrawlerRunner.Crawling.add(tempAnchor);
+            DB_Man.InsertCrawling(tempAnchor);
+            System.out.println("\t\tThread " + Thread.currentThread().getName() + " added: " + tempAnchor.getAnchorURL());
         }
-       if(isHTML(document) && robotAllowed(domainURL))
-        {
-            Crawled.add(Crawling.get(0));   //Add the crawled page to Crawled list
-            updateCrawledStatus(Crawling.get(0)); //Insert the crawled page to database
-        }
 
-
-
-        Crawling.remove(0); //Remove the crawled page from the To-Be-Crawled list
+        CrawlerRunner.Crawled.add(link);
+        DB_Man.updateCrawledStatus(link);
+        System.out.println("Thread " + Thread.currentThread().getName() + " processed link: " + link.getAnchorURL());
     }
 
-    public boolean robotAllowed(String domainURL)
-    {
-
-        String robotURL = getRobotURL(domainURL);
-
-        try
-        {
-            WebPage robotPage = new WebPage(robotURL);
-
-           return robotPage.isAllowedByRobot(domainURL);
-
-        }
-        catch (Exception e)
-        {
-
-        }
-        return true;
-
-    }
-    public String getRobotURL(String domainURL)
-    {
-        //Pattern p = Pattern.compile("(.*//[a-zA-Z0-9.]*)/?");
-     //   Matcher m = p.matcher(domainURL);
-        String domainRoot = domainURL.substring(0, domainURL.substring(8).indexOf('/') + 9);
-        return domainRoot + "robots.txt";
-
-    }
-    public boolean isHTML(Document doc)
-    {
-        Elements e = doc.getElementsByTag("html");
-
-        if(e.isEmpty())
-            return false;
-        else
-            return true;
-    }
-    public void updateCrawledStatus(Anchor CrawledPage)
-    {
-        /* Update the crawled anchor to the database */
-        DB_Manager DB_Man = new DB_Manager();
-        for(String referrerURL : CrawledPage.getReferrerURLs())
-             DB_Man.executeNonQuery(" UPDATE domain_referrer SET isCrawled = 1 WHERE domainURL = '" + CrawledPage.getAnchorURL() + "' AND referrerURL = '" + referrerURL +"'");
-
-    }
-    public void InsertCrawling(Anchor CrawlingPage)
-    {
-        /* Inserts the crawled anchor to the database */
-        DB_Manager DB_Man = new DB_Manager();
-        for(String referrerURL : CrawlingPage.getReferrerURLs())
-            DB_Man.executeNonQuery(" INSERT INTO domain_referrer (domainURL, referrerURL) VALUES ('" + CrawlingPage.getAnchorURL() + "', '" + referrerURL + "')");
-
-    }
-
-    public boolean isCrawled(Anchor a, Vector <Anchor> Crawled)
+    public boolean isCrawled(Anchor a)
     {
         /* Checks whether the page has been crawled before, and updates the page's referrer URLs */
-        for(Anchor anchor:Crawled)
+        for(Anchor anchor : CrawlerRunner.Crawled)
         {
             if(anchor.getAnchorURL().equals(a.getAnchorURL()))
             {
