@@ -75,39 +75,6 @@ public class WebPage {
         }
     }
 
-
-    public boolean isAllowedByRobot(String domainURL)
-    {
-        String e = document.body().text();
-        String[] tokens = e.split(" ");
-        boolean userAgent = false;
-        boolean ourBot = false;
-        boolean disallow = false;
-        boolean allow = false;
-        for (String t : tokens) {
-            if (t.indexOf('#') != 0) {
-                if (disallow) {
-                    disallow = false;
-                    if (t.equals("/") || domainURL.contains(t) )
-                        return false; //Return Not allowed
-                } else if (allow) {
-                    allow = false;
-                    if (t.equals("/") || domainURL.contains(t))
-                        return true; //Return allowed
-                } else if (t.equals("*") || t.equals("ourBot")) {
-                    ourBot = true;
-                } else if (ourBot && t.equals("Disallow:")) {
-                    disallow = true;
-                } else if (ourBot && t.equals("Allow:")) {
-                    allow = true;
-                } else
-                    ourBot = false;
-
-            }
-        }
-       return true;// Return allowed
-    }
-    
     public void insertToDatabase()
     {
         String sqlQuery = "INSERT INTO crawledpages (domainURL, Title, Keywords, Description) VALUES ('" + domainURL + "', '" + Title +"', '" + Keywords +"', '" + Description +"');";
