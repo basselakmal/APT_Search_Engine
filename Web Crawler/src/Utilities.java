@@ -16,16 +16,16 @@ public class Utilities {
         String filePathString = "pages\\" + anchor.getAnchorHash() + ".txt";
         File f = new File(filePathString);
         Document document = null;
-        if(!f.exists()) {
+        if(anchor.getAnchorURL().endsWith("robots.txt") && f.exists()) {
             // If the file doesn't exist, create it
+            document = Jsoup.parse(f, "ISO-8859-1");
+        }
+        else{
             document = Jsoup.connect(anchor.getAnchorURL()).get();
             FileWriter file = new FileWriter(filePathString );
             BufferedWriter out = new BufferedWriter(file);
             out.write(document.outerHtml());
             out.close();
-        }
-        else{
-            document = Jsoup.parse(f, "ISO-8859-1");
         }
 
         return document;
