@@ -77,13 +77,13 @@ public class WebPage {
 
     public void insertToDatabase()
     {
-        String sqlQuery = "INSERT INTO crawledpages (domainURL, Title, Keywords, Description) VALUES ('" + domainURL + "', '" + Title +"', '" + Keywords +"', '" + Description +"');";
+        String sqlQuery = "INSERT INTO indexed_pages (domainURL, Title, Keywords, Description) VALUES ('" + domainURL + "', '" + Title +"', '" + Keywords +"', '" + Description +"');";
         DB_Man.executeNonQuery(sqlQuery);
     }
 
     public void updateIndexedStatus()
     {
-        DB_Man.executeNonQuery("UPDATE domain_referrer SET isIndexed = 1 WHERE domainURL = '" + domainURL + "'");
+        DB_Man.executeNonQuery("UPDATE crawled_pages SET isIndexed = 1 WHERE domainURL = '" + domainURL + "'");
     }
 
     public void printInfo()
@@ -112,13 +112,12 @@ public class WebPage {
         HashSet<String> Tokens = new HashSet(BodyList);
         Tokens.removeAll(stopWords);
 
-        System.out.println("URL: " + domainURL + "\nNumber of Tokens: " + Tokens.size());
         for(String token : Tokens)
         {
             int Occurrences = Collections.frequency(BodyList, token);
             if(Occurrences == 0)
                 continue;
-            DB_Man.executeNonQuery("INSERT INTO InvertedFile (Token, Count, URL) VALUES('" + token + "', " + Occurrences + ", '" + domainURL.toString() + "');");
+            DB_Man.executeNonQuery("INSERT INTO Inverted_File (Token, Count, URL) VALUES('" + token + "', " + Occurrences + ", '" + domainURL.toString() + "');");
         }
     }
 }
