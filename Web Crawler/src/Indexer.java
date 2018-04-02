@@ -16,10 +16,15 @@ public class Indexer extends Thread{
                 webPage.parseDocument();
                 webPage.tokenizePage();
                 webPage.insertToDatabase();
-                IndexerRunner.FinishedPages.add(webPage);
+                synchronized (IndexerRunner.FinishedPages){
+                    IndexerRunner.FinishedPages.add(webPage);
+                }
                 webPage.updateIndexedStatus();
                 System.out.println("Thread: " + Thread.currentThread().getName() + " indexed the following:");
                 webPage.printInfo();
+                synchronized (IndexerRunner.processingURLs){
+                    IndexerRunner.processingURLs.remove(domainURL);
+                }
             }
             catch(Exception e)
             {
