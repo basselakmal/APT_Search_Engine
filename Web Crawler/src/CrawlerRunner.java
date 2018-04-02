@@ -14,7 +14,7 @@ public class CrawlerRunner
     public static Vector <Thread> Threads = new Vector<Thread>();
 
     public static int totalMax = 5000;
-    public static int iterationMax = 1000;
+    public static int iterationMax = 2000;
     public static int HighPriorityLinks = 50;
     public static int iterationsCounter = 0;
 
