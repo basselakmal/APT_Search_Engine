@@ -32,11 +32,11 @@ public class Utilities {
     }
     catch(UncheckedIOException e)
     {
-        System.out.println("It happened!\n" + e.getMessage());
+
     }
     catch (Exception ex)
     {
-        System.out.println("Error while downloading the document: " + ex.getMessage() + "\nURL:" + anchor.getAnchorURL());
+        //System.out.println("Error while downloading the document: " + ex.getMessage() + "\nURL:" + anchor.getAnchorURL());
     }
         return null;
     }
@@ -76,11 +76,11 @@ public class Utilities {
                 if (t.indexOf('#') != 0) {
                     if (disallow) {
                         disallow = false;
-                        if (t.equals("/") || domainURL.contains(t) )
+                        if (domainURL.matches(getRuleRegex(t)))
                             return false; //Return Not allowed
                     } else if (allow) {
                         allow = false;
-                        if (t.equals("/") || domainURL.contains(t))
+                        if (domainURL.matches(getRuleRegex(t)))
                             return true; //Return allowed
                     } else if (t.equals("*") || t.equals("ourBot")) {
                         ourBot = true;
@@ -100,6 +100,22 @@ public class Utilities {
 
         }
         return true;
+    }
+
+    public String getRuleRegex(String Rule) {
+        //This function returns a Regex that matches the specified Rule
+
+        String AllowedChars = "[a-zA-Z0-9-_]+"; //Allowed characters to replace *
+
+        if(Rule.endsWith("/*")) //The whole directory will not be crawled (is handled later, so remove the last *)
+            Rule = Rule.substring(0, Rule.length()-1);
+
+        String RuleRegex = Rule.replace("*", AllowedChars); //Replace * with any sequence of possible characters
+
+        RuleRegex = RuleRegex.replace("?", "\\?");  //Escape the question mark
+        if (RuleRegex.endsWith("/"))    //To match anything inside a directory
+            RuleRegex += ".*";
+        return RuleRegex;
     }
 
     public String getURLHash(String anchorURL){
