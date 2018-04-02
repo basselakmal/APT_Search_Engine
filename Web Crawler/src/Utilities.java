@@ -124,4 +124,5 @@ public class Utilities {
         anchorHash = anchorHash.substring(anchorHash.length()<71?0:anchorHash.length()-71, anchorHash.length()-1);  //Take Maximum of 70 Chars
         return anchorHash;
     }
+
 }
