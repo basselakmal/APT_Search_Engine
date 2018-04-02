@@ -13,6 +13,7 @@ public class WebCrawler extends Thread {
 
     DB_Manager DB_Man = new DB_Manager();
     Utilities Utl = new Utilities();
+    int stopping = 1000;
 
     public WebCrawler(){
 
@@ -25,6 +26,11 @@ public class WebCrawler extends Thread {
             try
             {
                 Crawl();
+                Thread.currentThread().sleep(1000);
+                if (CrawlerRunner.Crawled.size() < 5000)
+                {
+                    //System.out.println("Thread number " + Thread.currentThread().getName() + " currently restarting");
+                }
             }
             catch (Exception e)
             {
@@ -60,7 +66,7 @@ public class WebCrawler extends Thread {
             System.out.println("Removed Invalid Link: " + link.getAnchorURL());
             return;
         }
-
+        
         System.out.println("Thread " + Thread.currentThread().getName() + " is processing link: " + link.getAnchorURL());
         String domainURL = link.getAnchorURL();
         HashSet<String> referrerURLs = link.getReferrerURLs();
@@ -97,6 +103,13 @@ public class WebCrawler extends Thread {
             CrawlerRunner.Crawling.add(tempAnchor);
             DB_Man.InsertCrawling(tempAnchor);
             System.out.println("\t\tThread " + Thread.currentThread().getName() + " added: " + tempAnchor.getAnchorURL());
+            if ( CrawlerRunner.Crawling.size() >= stopping)
+            {
+                stopping = stopping + 1000;
+                System.out.println("-----------------------------------------------------------------------------------------------------------");
+                System.out.println("Thread " + Thread.currentThread().getName() + " reached a stopping point " + stopping + ", Restarting the Crawler >>>>>>>>>>>>>>");
+                return;
+            }
         }
 
         CrawlerRunner.Crawled.add(link);
