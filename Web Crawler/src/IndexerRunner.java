@@ -5,9 +5,10 @@ import java.util.Vector;
 public class IndexerRunner {
 
     private static Vector<Object> domainURLs = new Vector<Object>();
-    private static HashSet<Object> processedURLs = new HashSet<Object>();
+    public static HashSet<Object> processingURLs = new HashSet<Object>();
 
     public static Vector<WebPage> FinishedPages = new Vector<WebPage>();
+    public static Vector<Thread> Threads = new Vector<Thread>();
 
     public static void main(String[] args){
         System.out.print("Please enter the number of threads: ");
@@ -16,6 +17,7 @@ public class IndexerRunner {
 
         for(int i=0; i< nThreads; i++){
             Thread indexer = new Indexer();
+            Threads.add(indexer);
             indexer.setName("Indexer " + (i+1));
             indexer.start();
         }
@@ -40,10 +42,10 @@ public class IndexerRunner {
         try
         {
             DB_Manager DB_Man = new DB_Manager();
-            Vector<Object>tempDomainURLs = DB_Man.getColumnData("domainURL", "SELECT DISTINCT domainURL FROM domain_referrer WHERE isIndexed=0 AND isCrawled=1;");
+            Vector<Object>tempDomainURLs = DB_Man.getColumnData("domainURL", "SELECT domainURL FROM crawled_pages WHERE isIndexed=0 AND isCrawled=1;");
 
             for(int i=0; i<tempDomainURLs.size(); i++){
-                if(!processedURLs.add(tempDomainURLs.get(i))){
+                if(!processingURLs.add(tempDomainURLs.get(i))){
                     tempDomainURLs.removeElementAt(i);
                     i--;
                 }
