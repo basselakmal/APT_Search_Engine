@@ -44,7 +44,7 @@ public class DB_Manager {
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
-        String sqlQuery = "SELECT domainURL, referrerURL FROM domain_referrer WHERE isCrawled = 1";
+        String sqlQuery = "SELECT dr.domainURL, dr.referrerURL FROM domain_referrer as dr, crawled_pages as cp WHERE cp.domainURL = dr.domainURL AND cp.isCrawled = 1 ORDER BY cp.domainURL";
         Vector<Anchor> Crawled = new Vector<Anchor>();
         String LastURL = "";
 
@@ -81,7 +81,7 @@ public class DB_Manager {
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
-        String sqlQuery = "SELECT domainURL, referrerURL FROM domain_referrer WHERE isCrawled = 0";
+        String sqlQuery = "SELECT dr.domainURL, dr.referrerURL FROM domain_referrer as dr, crawled_pages as cp WHERE cp.domainURL = dr.domainURL AND cp.isCrawled = 0 ORDER BY cp.domainURL";
         Vector<Anchor> Crawling = new Vector<Anchor>();
         String LastURL = "";
 
@@ -169,20 +169,24 @@ public class DB_Manager {
     public synchronized void updateCrawledStatus(Anchor CrawledPage)
     {
         /* Update the crawled anchor to the database */
-        for(String referrerURL : CrawledPage.getReferrerURLs())
-            executeNonQuery("UPDATE domain_referrer SET isCrawled = 1 WHERE domainURL = '" + CrawledPage.getAnchorURL() + "' AND referrerURL = '" + referrerURL +"'");
-
+        executeNonQuery("UPDATE crawled_pages SET isCrawled = 1 WHERE domainURL = '" + CrawledPage.getAnchorURL() + "'");
     }
 
     public void InsertCrawling(Anchor CrawlingPage)
     {
         /* Inserts the crawled anchor to the database */
-        for(String referrerURL : CrawlingPage.getReferrerURLs())
-            executeNonQuery("INSERT INTO domain_referrer (domainURL, referrerURL) VALUES ('" + CrawlingPage.getAnchorURL() + "', '" + referrerURL + "')");
-
+        for(String referrerURL : CrawlingPage.getReferrerURLs()){
+            executeNonQuery("INSERT INTO domain_referrer (domainURL, referrerURL) VALUES ('" + CrawlingPage.getAnchorURL() + "', '" + referrerURL + "');");
+            executeNonQuery( "INSERT INTO crawled_pages (domainURL) VALUES ('" + CrawlingPage.getAnchorURL() + "');");
+        }
     }
 
     public void removeLink(Anchor link){
         executeNonQuery("DELETE FROM domain_referrer WHERE domainURL = '" + link.getAnchorURL() + "';");
+        executeNonQuery("DELETE FROM crawled_pages WHERE domainURL = '" + link.getAnchorURL() + " WHERE isCrawled=0;");
+    }
+
+    public void updatePriority(Anchor link){
+        executeNonQuery("UPDATE crawled_pages SET highPriority = 1 WHERE domainURL = '" + link.getAnchorURL() + "';");
     }
 }
