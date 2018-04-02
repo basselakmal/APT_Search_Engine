@@ -4,10 +4,8 @@ import java.util.Vector;
 
 public class IndexerRunner {
 
-    private static Vector<Object> domainURLs = new Vector<Object>();
+    public static Vector<Object> domainURLs = new Vector<Object>();
     public static HashSet<Object> processingURLs = new HashSet<Object>();
-
-    public static Vector<WebPage> FinishedPages = new Vector<WebPage>();
     public static Vector<Thread> Threads = new Vector<Thread>();
 
     public static void main(String[] args){
@@ -26,16 +24,6 @@ public class IndexerRunner {
             while(domainURLs.size()>0){}
             fetchDomainURLs();
         }
-    }
-
-    public static synchronized String getURL(){
-        String domainURL = null;
-        if(domainURLs.size() > 0){
-            domainURL = domainURLs.get(0).toString();
-            domainURLs.removeElementAt(0);
-        }
-
-        return domainURL;
     }
 
     private synchronized static void fetchDomainURLs(){
