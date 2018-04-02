@@ -87,6 +87,10 @@ public class WebCrawler extends Thread {
                     res = url.substring(0, url.indexOf('#'));
                 else
                     res = url;
+
+                int lastIndex = res.lastIndexOf('/');
+                if((res.substring(lastIndex-1, lastIndex+1).equals("//") || res.lastIndexOf('.') < lastIndex) && lastIndex + 1 < res.length())
+                    res = res + "/";
                 linksSet.add(res);
             }
 
