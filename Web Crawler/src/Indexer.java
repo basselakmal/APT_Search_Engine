@@ -8,7 +8,7 @@ public class Indexer extends Thread{
 
             try {
                 String domainURL = null;
-                domainURL = IndexerRunner.getURL();
+                domainURL = getURL();
                 if(domainURL == null)
                     continue;
 
@@ -16,9 +16,6 @@ public class Indexer extends Thread{
                 webPage.parseDocument();
                 webPage.tokenizePage();
                 webPage.insertToDatabase();
-                synchronized (IndexerRunner.FinishedPages){
-                    IndexerRunner.FinishedPages.add(webPage);
-                }
                 webPage.updateIndexedStatus();
                 System.out.println("Thread: " + Thread.currentThread().getName() + " indexed the following:");
                 webPage.printInfo();
@@ -31,5 +28,16 @@ public class Indexer extends Thread{
                 System.out.println("Indexer Error: " + e.getMessage());
             }
     }
+    }
+
+    public String getURL(){
+        synchronized (IndexerRunner.domainURLs){
+            String domainURL = null;
+            if(IndexerRunner.domainURLs.size() > 0){
+                domainURL = IndexerRunner.domainURLs.get(0).toString();
+                IndexerRunner.domainURLs.removeElementAt(0);
+            }
+            return domainURL;
+        }
     }
 }
