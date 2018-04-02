@@ -20,11 +20,12 @@ public class WebCrawler extends Thread {
 
     public void run() {
 
-        while(CrawlerRunner.Crawled.size() < CrawlerRunner.Max)
+        while(CrawlerRunner.iterationsCounter < CrawlerRunner.iterationMax)
         {
             try
             {
-                Crawl();
+                if(Crawl() == -1)
+                    break;
             }
             catch (Exception e)
             {
@@ -39,29 +40,29 @@ public class WebCrawler extends Thread {
         }
     }
 
-    public synchronized Anchor getLink(){
-        Anchor link = null;
-        if(CrawlerRunner.Crawling.size() > 0)
-        {
-            link = CrawlerRunner.Crawling.get(0);
-            CrawlerRunner.Crawling.removeElementAt(0);
+    public Anchor getLink(){
+        synchronized (CrawlerRunner.Crawling){
+            Anchor link = null;
+
+            if(CrawlerRunner.Crawling.size() > 0)
+            {
+                link = CrawlerRunner.Crawling.get(0);
+                CrawlerRunner.Crawling.removeElementAt(0);
+                if(isCrawled(link)){
+                    return getLink();
+                }
+            }
+            return link;
         }
-        return link;
     }
 
-    public void Crawl() throws IOException {
+    public int Crawl() throws IOException {
         Anchor link = getLink();
 
         if(link == null)
-            return;
+            return 0;
 
-        if(isCrawled(link)) {
-            DB_Man.updateCrawledStatus(link); //Insert crawled page to database (for updating the referrer urls)
-            System.out.println("Removed Invalid Link: " + link.getAnchorURL());
-            return;
-        }
-
-        System.out.println("Thread " + Thread.currentThread().getName() + " is processing link: " + link.getAnchorURL());
+        //System.out.println("Thread " + Thread.currentThread().getName() + " is processing link: " + link.getAnchorURL());
         String domainURL = link.getAnchorURL();
         HashSet<String> referrerURLs = link.getReferrerURLs();
 
@@ -70,7 +71,7 @@ public class WebCrawler extends Thread {
         if(document == null || !Utl.isHTML(document) || !Utl.robotAllowed(link.getAnchorURL())){
             //Invalid link. Remove it from the database!
             DB_Man.removeLink(link);
-            return;
+            return 0;
         }
 
         //Fetching all links from page at url: domainURL, and adding them to the crawling list (To be crawled)
@@ -89,19 +90,30 @@ public class WebCrawler extends Thread {
                 linksSet.add(res);
             }
 
-        System.out.println("URL: " +link.getAnchorURL() + ", Links Count: " + linksSet.size());
+        //System.out.println("URL: " +link.getAnchorURL() + ", Links Count: " + linksSet.size());
+        if(linksSet.size() > CrawlerRunner.HighPriorityLinks)
+            DB_Man.updatePriority(link);
+
         for (String Link : linksSet) {
-            if(CrawlerRunner.Crawled.size() >= CrawlerRunner.Max)
-                return;
+            if(CrawlerRunner.iterationsCounter >= CrawlerRunner.iterationMax)
+                return -1;
+
             Anchor tempAnchor = new Anchor(domainURL, Link);
             CrawlerRunner.Crawling.add(tempAnchor);
             DB_Man.InsertCrawling(tempAnchor);
-            System.out.println("\t\tThread " + Thread.currentThread().getName() + " added: " + tempAnchor.getAnchorURL());
+            //System.out.println("\t\tThread " + Thread.currentThread().getName() + " added: " + tempAnchor.getAnchorURL());
         }
 
-        CrawlerRunner.Crawled.add(link);
-        DB_Man.updateCrawledStatus(link);
-        System.out.println("Thread " + Thread.currentThread().getName() + " processed link: " + link.getAnchorURL());
+        synchronized (CrawlerRunner.Crawled){
+            if(!isCrawled(link)){
+                CrawlerRunner.Crawled.add(link);
+                CrawlerRunner.iterationsCounter++;
+                DB_Man.updateCrawledStatus(link);
+                //System.out.println("Crawled Count: " + CrawlerRunner.Crawled.size());
+                System.out.println("Thread " + Thread.currentThread().getName() + " processed link: " + link.getAnchorURL());
+            }
+        }
+        return 0;
     }
 
     public boolean isCrawled(Anchor a)
