@@ -52,27 +52,11 @@ public class CrawlerRunner
         DB_Manager DB_Man = new DB_Manager();
         DB_Man.executeNonQuery("Delete FROM domain_referrer where domainURL in (SELECT domainURL FROM crawled_pages WHERE isCrawled = 0);");
         DB_Man.executeNonQuery("Delete FROM crawled_pages WHERE isCrawled = 0;");
-        System.out.println("Waiting for indexer to finish....");
-
-        //Wait for indexer to finish
-        while (true){
-            long count = (long) DB_Man.executeScalar("SELECT COUNT(*) FROM crawled_pages WHERE isCrawled=1 AND isIndexed=0");
-            if(count == 0)
-                break;
-            Thread.sleep(10000);    //Recheck after 10 seconds.
-        }
-
-        //Delete old crawled pages
-        File dir = new File("pages/");
-        for(File file: dir.listFiles())
-            if (!file.isDirectory())
-                file.delete();
-
-        Thread.sleep(4000);
-        System.out.println("Restarting crawler....");
-        Thread.sleep(4000);
-
         DB_Man.executeNonQuery("UPDATE crawled_pages SET isCrawled=0, isIndexed=0 WHERE highPriority = 1");
+
+        System.out.println("Restarting crawler....");
+        Thread.sleep(5000);
+
 
         iterationsCounter = 0;
 
@@ -95,6 +79,12 @@ public class CrawlerRunner
 
             if(Crawled.size() == 0 && Crawling.size() == 0)
             {
+                //Delete old crawled pages if exist
+                dir = new File("pages/");
+                for(File file: dir.listFiles())
+                    if (!file.isDirectory())
+                        file.delete();
+
                 String[] SeedList = new String[]{ "https://dmoztools.net/", "https://stackexchange.com/", "https://en.wikipedia.org/wiki/Main_Page/", "https://twitter.com/", "https://www.google.com/business/", "https://www.pinterest.com/", "https://www.reddit.com/", "http://www.stumbleupon.com/", "https://vimeo.com/", "https://www.tumblr.com/", "https://disqus.com/", "https://www.slideshare.net/", "https://www.yelp.com/", "http://www.dailymotion.com/us/", "https://soundcloud.com/", "https://www.behance.net/", "https://www.diigo.com/", "https://www.scribd.com/", "https://www.deviantart.com/", "https://about.me/", "https://moz.com/", "https://storify.com/", "https://pro.iconosquare.com/", "https://www.crunchbase.com/", "http://www.scoop.it/", "https://www.instapaper.com/", "https://www.wattpad.com/", "https://envato.com/", "https://www.rebelmouse.com/", "https://aboutus.com/", "http://www.authorstream.com/", "https://www.pearltrees.com/", "https://edition.cnn.com/", "http://www.skysports.com/" };
 
                 for(String StartURL : SeedList)
