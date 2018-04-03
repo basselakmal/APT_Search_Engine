@@ -44,9 +44,9 @@ public class DB_Manager {
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
-        String sqlQuery = "SELECT dr.domainURL, dr.referrerURL FROM domain_referrer as dr, crawled_pages as cp WHERE cp.domainURL = dr.domainURL AND cp.isCrawled = 1 ORDER BY cp.domainURL";
+        String sqlQuery = "SELECT dr.domainURL, dr.referrerURL, cp.highPriority FROM domain_referrer as dr, crawled_pages as cp WHERE cp.domainURL = dr.domainURL AND cp.isCrawled=1 ORDER BY domainURL;";
         Vector<Anchor> Crawled = new Vector<Anchor>();
-        String LastURL = "";
+        String LastURL = null;
 
         try {
             // fetch a connection
@@ -62,6 +62,8 @@ public class DB_Manager {
                     } else {
                         LastURL = rs.getString("domainURL");
                         Crawled.add(new Anchor(rs.getString("referrerURL"), rs.getString("domainURL")));
+                        if(rs.getInt("highPriority") == 1)
+                            Crawled.lastElement().setHighPriority();
                     }
                 }
             }
@@ -81,7 +83,7 @@ public class DB_Manager {
         PreparedStatement stmt = null;
         ResultSet rs = null;
 
-        String sqlQuery = "SELECT dr.domainURL, dr.referrerURL FROM domain_referrer as dr, crawled_pages as cp WHERE cp.domainURL = dr.domainURL AND cp.isCrawled = 0 ORDER BY cp.domainURL";
+        String sqlQuery = "SELECT dr.domainURL, dr.referrerURL, cp.highPriority FROM domain_referrer as dr, crawled_pages as cp WHERE cp.domainURL = dr.domainURL AND cp.isCrawled=0 ORDER BY domainURL;";
         Vector<Anchor> Crawling = new Vector<Anchor>();
         String LastURL = "";
 
@@ -100,6 +102,8 @@ public class DB_Manager {
                     } else {
                         LastURL = rs.getString("domainURL");
                         Crawling.add(new Anchor(rs.getString("referrerURL"), rs.getString("domainURL")));
+                        if(rs.getBoolean("highPriority"))
+                            Crawling.lastElement().setHighPriority();
                     }
                 }
             }
