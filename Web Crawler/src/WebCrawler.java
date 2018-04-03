@@ -20,7 +20,7 @@ public class WebCrawler extends Thread {
 
     public void run() {
 
-        while(CrawlerRunner.iterationsCounter < CrawlerRunner.iterationMax)
+        while(CrawlerRunner.iterationsCounter < CrawlerRunner.iterationMax && CrawlerRunner.totalCrawled < CrawlerRunner.totalMax)
         {
             try
             {
@@ -95,11 +95,9 @@ public class WebCrawler extends Thread {
             }
 
         //System.out.println("URL: " +link.getAnchorURL() + ", Links Count: " + linksSet.size());
-        if(linksSet.size() > CrawlerRunner.HighPriorityLinks)
-            DB_Man.updatePriority(link);
 
         for (String Link : linksSet) {
-            if(CrawlerRunner.iterationsCounter >= CrawlerRunner.iterationMax)
+            if(CrawlerRunner.iterationsCounter >= CrawlerRunner.iterationMax || CrawlerRunner.totalCrawled >= CrawlerRunner.totalMax)
                 return -1;
 
             Anchor tempAnchor = new Anchor(domainURL, Link);
@@ -110,11 +108,20 @@ public class WebCrawler extends Thread {
 
         synchronized (CrawlerRunner.Crawled){
             if(!isCrawled(link)){
+                if(!link.isHighPriority())
+                    CrawlerRunner.totalCrawled++;
+
+                if(linksSet.size() > CrawlerRunner.HighPriorityLinks){
+                    DB_Man.updatePriority(link);
+                    link.setHighPriority();
+                }
                 CrawlerRunner.Crawled.add(link);
-                CrawlerRunner.iterationsCounter++;
                 DB_Man.updateCrawledStatus(link);
+                CrawlerRunner.iterationsCounter++;
                 //System.out.println("Crawled Count: " + CrawlerRunner.Crawled.size());
                 System.out.println("Thread " + Thread.currentThread().getName() + " processed link: " + link.getAnchorURL());
+                if(CrawlerRunner.iterationsCounter >= CrawlerRunner.iterationMax || CrawlerRunner.totalCrawled >= CrawlerRunner.totalMax)
+                    return -1;
             }
         }
         return 0;
