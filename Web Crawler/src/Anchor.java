@@ -9,12 +9,21 @@ public class Anchor {
     private HashSet<String> referrerURLs = new HashSet<String>();
     private String anchorURL, anchorHash;
     private Utilities Utl = new Utilities();
+    private boolean highPriority = false;
 
     /* Constructors */
     public Anchor(String referrerURL, String anchorURL) {
         this.referrerURLs.add(referrerURL);
         this.anchorURL = anchorURL;
         anchorHash = Utl.getURLHash(anchorURL);
+    }
+
+    public boolean isHighPriority() {
+        return highPriority;
+    }
+
+    public void setHighPriority() {
+        highPriority = true;
     }
 
     /* Getters */
