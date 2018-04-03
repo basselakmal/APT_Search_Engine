@@ -17,6 +17,7 @@ public class CrawlerRunner
     public static int iterationMax = 2500;
     public static int HighPriorityLinks = 50;
     public static int iterationsCounter = 0;
+    public static long totalCrawled = 0;
 
     public static void main(String [] args) throws InterruptedException
     {
@@ -32,15 +33,24 @@ public class CrawlerRunner
                     webCrawler.setName("Crawler " + (i+1));
                     webCrawler.start();
                 }
-                while(iterationsCounter < iterationMax){
+                while(iterationsCounter < iterationMax && totalCrawled < totalMax){
                     Thread.sleep(3000);
                 }
 
-                if(Crawled.size() >= totalMax)
+                if(totalCrawled >= totalMax){
+                    DB_Manager DB_Man = new DB_Manager();
+                    DB_Man.executeNonQuery("UPDATE crawled_pages SET isCrawled=1 WHERE highPriority = 1;");
                     break;
+                }
                 System.out.println("Finished an Iteration!\n");
                 RestartCrawler();
             }
+
+            //Keep the only crawled webpages
+            DB_Manager DB_Man = new DB_Manager();
+            DB_Man.executeNonQuery("UPDATE crawled_pages SET isCrawled=1 WHERE highPriority = 1;");
+            DB_Man.executeNonQuery("Delete FROM domain_referrer where domainURL in (SELECT domainURL FROM crawled_pages WHERE isCrawled = 0);");
+            DB_Man.executeNonQuery("Delete FROM crawled_pages WHERE isCrawled = 0;");
         }
         catch (Exception e)
         {
@@ -50,6 +60,9 @@ public class CrawlerRunner
 
     public static void RestartCrawler() throws InterruptedException, ClassNotFoundException, SQLException, PropertyVetoException, IOException {
         DB_Manager DB_Man = new DB_Manager();
+        DB_Man.executeNonQuery("UPDATE crawled_pages SET isCrawled=1 WHERE highPriority = 1;");
+        totalCrawled = (long) DB_Man.executeScalar("SELECT COUNT(*) FROM crawled_pages WHERE isCrawled=1;");
+
         DB_Man.executeNonQuery("Delete FROM domain_referrer where domainURL in (SELECT domainURL FROM crawled_pages WHERE isCrawled = 0);");
         DB_Man.executeNonQuery("Delete FROM crawled_pages WHERE isCrawled = 0;");
         DB_Man.executeNonQuery("UPDATE crawled_pages SET isCrawled=0, isIndexed=0 WHERE highPriority = 1");
@@ -59,7 +72,6 @@ public class CrawlerRunner
 
 
         iterationsCounter = 0;
-
         Crawled = DB_Man.getCrawledAnchors();
         Crawling = DB_Man.getCrawlingAnchors();
     }
@@ -76,6 +88,7 @@ public class CrawlerRunner
             //Load Crawled and Crawling from the database
             Crawled = DB_Man.getCrawledAnchors();
             Crawling = DB_Man.getCrawlingAnchors();
+            totalCrawled = Crawled.size();
 
             if(Crawled.size() == 0 && Crawling.size() == 0)
             {
