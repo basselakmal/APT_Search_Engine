@@ -11,13 +11,13 @@ public class CrawlerRunner
 {
     public static Vector <Anchor> Crawled = null;
     public static Vector <Anchor> Crawling = null;
-    public static Vector <Thread> Threads = new Vector<Thread>();
 
-    public static int totalMax = 5000;
-    public static int iterationMax = 2500;
+    public static int totalMax = 50;
     public static int HighPriorityLinks = 50;
     public static int iterationsCounter = 0;
-    public static long totalCrawled = 0;
+    public static int iterationMax = 0;
+
+    public static int nIterations = 0;
 
     public static void main(String [] args) throws InterruptedException
     {
@@ -27,30 +27,23 @@ public class CrawlerRunner
             System.out.print("Please enter the number of threads: ");
             Scanner MyScanner = new Scanner(System.in);
             int nThreads = MyScanner.nextInt();
-            while(Crawled.size() < totalMax){
-                for(int i=0; i<nThreads; i++){
-                    Thread webCrawler = new WebCrawler();
-                    webCrawler.setName("Crawler " + (i+1));
-                    webCrawler.start();
-                }
-                while(iterationsCounter < iterationMax && totalCrawled < totalMax){
-                    Thread.sleep(3000);
-                }
 
-                if(totalCrawled >= totalMax){
-                    DB_Manager DB_Man = new DB_Manager();
-                    DB_Man.executeNonQuery("UPDATE crawled_pages SET isCrawled=1 WHERE highPriority = 1;");
-                    break;
-                }
-                System.out.println("Finished an Iteration!\n");
-                RestartCrawler();
+            for(int i=0; i<nThreads; i++) {
+                Thread webCrawler = new WebCrawler();
+                webCrawler.setName("Crawler " + (i + 1));
+                webCrawler.start();
             }
 
-            //Keep the only crawled webpages
-            DB_Manager DB_Man = new DB_Manager();
-            DB_Man.executeNonQuery("UPDATE crawled_pages SET isCrawled=1 WHERE highPriority = 1;");
-            DB_Man.executeNonQuery("Delete FROM domain_referrer where domainURL in (SELECT domainURL FROM crawled_pages WHERE isCrawled = 0);");
-            DB_Man.executeNonQuery("Delete FROM crawled_pages WHERE isCrawled = 0;");
+            while(true){
+                while(iterationsCounter < iterationMax){
+                    //System.out.println(iterationsCounter + " : " + iterationMax);
+                    Thread.sleep(200);
+                }
+
+                System.out.println("Finished an Iteration!\n");
+                nIterations ++;
+                RestartCrawler();
+            }
         }
         catch (Exception e)
         {
@@ -61,9 +54,7 @@ public class CrawlerRunner
     public static void RestartCrawler() throws InterruptedException, ClassNotFoundException, SQLException, PropertyVetoException, IOException {
         DB_Manager DB_Man = new DB_Manager();
         DB_Man.executeNonQuery("UPDATE crawled_pages SET isCrawled=1 WHERE highPriority = 1;");
-        totalCrawled = (long) DB_Man.executeScalar("SELECT COUNT(*) FROM crawled_pages WHERE isCrawled=1;");
 
-        DB_Man.executeNonQuery("Delete FROM domain_referrer where domainURL in (SELECT domainURL FROM crawled_pages WHERE isCrawled = 0);");
         DB_Man.executeNonQuery("Delete FROM crawled_pages WHERE isCrawled = 0;");
         DB_Man.executeNonQuery("UPDATE crawled_pages SET isCrawled=0, isIndexed=0 WHERE highPriority = 1");
 
@@ -74,6 +65,8 @@ public class CrawlerRunner
         iterationsCounter = 0;
         Crawled = DB_Man.getCrawledAnchors();
         Crawling = DB_Man.getCrawlingAnchors();
+        iterationMax = Crawling.size() < totalMax && Crawling.size() > 0 ? Crawling.size() : totalMax;
+
     }
 
     public static void Initialize(){
@@ -85,10 +78,12 @@ public class CrawlerRunner
             if(!dir.exists())
                 dir.mkdir();
 
+            DB_Man.executeNonQuery("UPDATE crawled_pages SET isCrawled=1 WHERE highPriority = 1;");
             //Load Crawled and Crawling from the database
             Crawled = DB_Man.getCrawledAnchors();
             Crawling = DB_Man.getCrawlingAnchors();
-            totalCrawled = Crawled.size();
+            iterationMax = totalMax;
+            iterationsCounter = Crawled.size();
 
             if(Crawled.size() == 0 && Crawling.size() == 0)
             {
@@ -105,6 +100,7 @@ public class CrawlerRunner
                     Anchor anchor = new Anchor("SEED_LIST", StartURL);
                     Crawling.add(anchor);
                     DB_Man.InsertCrawling(anchor);
+                    DB_Man.InsertReferrer(anchor);
                 }
             }
         }
