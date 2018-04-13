@@ -134,6 +134,7 @@ public class DB_Manager {
         } catch (Exception ex) {
             if (stmt != null) try { stmt.close(); } catch (SQLException e) {e.printStackTrace();}
             if (conn != null) try { conn.close(); } catch (SQLException e) {e.printStackTrace();}
+
             return false;
         } finally {
             if (stmt != null) try { stmt.close(); } catch (SQLException e) {e.printStackTrace();}
@@ -180,13 +181,20 @@ public class DB_Manager {
     {
         /* Inserts the crawled anchor to the database */
         for(String referrerURL : CrawlingPage.getReferrerURLs()){
-            executeNonQuery("INSERT INTO domain_referrer (domainURL, referrerURL) VALUES ('" + CrawlingPage.getAnchorURL() + "', '" + referrerURL + "');");
             executeNonQuery( "INSERT INTO crawled_pages (domainURL) VALUES ('" + CrawlingPage.getAnchorURL() + "');");
         }
     }
 
+    public synchronized void InsertReferrer(Anchor CrawlingPage)
+    {
+        /* Inserts the crawled anchor to the database */
+        for(String referrerURL : CrawlingPage.getReferrerURLs()){
+            executeNonQuery("INSERT INTO domain_referrer (domainURL, referrerURL) VALUES ('" + CrawlingPage.getAnchorURL() + "', '" + referrerURL + "');");
+        }
+    }
+
     public void removeLink(Anchor link){
-        executeNonQuery("DELETE FROM domain_referrer WHERE domainURL = '" + link.getAnchorURL() + "';");
+        //executeNonQuery("DELETE FROM domain_referrer WHERE referrerURL = '" + link.getAnchorURL() + "';");
         executeNonQuery("DELETE FROM crawled_pages WHERE domainURL = '" + link.getAnchorURL() + " WHERE isCrawled=0;");
     }
 
