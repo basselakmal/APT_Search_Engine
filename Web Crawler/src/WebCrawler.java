@@ -5,9 +5,7 @@ import org.jsoup.select.Elements;
 
 import java.io.*;
 import java.util.HashSet;
-import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 public class WebCrawler extends Thread {
 
@@ -20,49 +18,45 @@ public class WebCrawler extends Thread {
 
     public void run() {
 
-        while(CrawlerRunner.iterationsCounter < CrawlerRunner.iterationMax && CrawlerRunner.totalCrawled < CrawlerRunner.totalMax)
+        while(true)
         {
             try
             {
                 if(Crawl() == -1)
-                    break;
+                    continue;
             }
             catch (Exception e)
             {
                 //System.out.println("Error: " + e.getMessage());
-                //System.out.println("URL: " + Crawling.get(0).getAnchorURL());
-                synchronized (CrawlerRunner.Crawling){
-                    if(CrawlerRunner.Crawling.size() > 0)
-                        CrawlerRunner.Crawling.removeElementAt(0);
-                    continue;
-                }
+                //synchronized (CrawlerRunner.Crawling){
+                 //   if(CrawlerRunner.Crawling.size() > 0)
+                 //       CrawlerRunner.Crawling.removeElementAt(0);
+                //    continue;
+               // }
             }
         }
     }
 
-    public Anchor getLink(){
-        synchronized (CrawlerRunner.Crawling){
-            Anchor link = null;
+    public synchronized Anchor getLink(){
+        Anchor link = null;
 
-            if(CrawlerRunner.Crawling.size() > 0)
-            {
-                link = CrawlerRunner.Crawling.get(0);
-                CrawlerRunner.Crawling.removeElementAt(0);
-                if(isCrawled(link)){
-                    return getLink();
-                }
+        if(CrawlerRunner.Crawling.size() > 0)
+        {
+            link = CrawlerRunner.Crawling.get(0);
+            CrawlerRunner.Crawling.removeElementAt(0);
+            if(CrawlerRunner.iterationsCounter == 0 && isCrawled(link)){
+                return getLink();
             }
-            return link;
         }
+        return link;
     }
+
 
     public int Crawl() throws IOException {
         Anchor link = getLink();
 
         if(link == null)
             return 0;
-
-        //System.out.println("Thread " + Thread.currentThread().getName() + " is processing link: " + link.getAnchorURL());
         String domainURL = link.getAnchorURL();
         HashSet<String> referrerURLs = link.getReferrerURLs();
 
@@ -94,22 +88,26 @@ public class WebCrawler extends Thread {
                 linksSet.add(res);
             }
 
-        //System.out.println("URL: " +link.getAnchorURL() + ", Links Count: " + linksSet.size());
 
         for (String Link : linksSet) {
-            if(CrawlerRunner.iterationsCounter >= CrawlerRunner.iterationMax || CrawlerRunner.totalCrawled >= CrawlerRunner.totalMax)
+            if(CrawlerRunner.iterationsCounter >= CrawlerRunner.iterationMax)
                 return -1;
 
             Anchor tempAnchor = new Anchor(domainURL, Link);
-            CrawlerRunner.Crawling.add(tempAnchor);
-            DB_Man.InsertCrawling(tempAnchor);
-            //System.out.println("\t\tThread " + Thread.currentThread().getName() + " added: " + tempAnchor.getAnchorURL());
-        }
 
+            DB_Man.InsertReferrer(tempAnchor);
+
+            if(CrawlerRunner.nIterations == 0){
+                CrawlerRunner.Crawling.add(tempAnchor);
+                DB_Man.InsertCrawling(tempAnchor);
+            }
+        }
         synchronized (CrawlerRunner.Crawled){
+
+            CrawlerRunner.iterationsCounter++;
             if(!isCrawled(link)){
-                if(!link.isHighPriority())
-                    CrawlerRunner.totalCrawled++;
+                if (CrawlerRunner.nIterations > 0 && !link.isHighPriority())
+                    return 0;
 
                 if(linksSet.size() > CrawlerRunner.HighPriorityLinks){
                     DB_Man.updatePriority(link);
@@ -117,10 +115,8 @@ public class WebCrawler extends Thread {
                 }
                 CrawlerRunner.Crawled.add(link);
                 DB_Man.updateCrawledStatus(link);
-                CrawlerRunner.iterationsCounter++;
-                //System.out.println("Crawled Count: " + CrawlerRunner.Crawled.size());
                 System.out.println("Thread " + Thread.currentThread().getName() + " processed link: " + link.getAnchorURL());
-                if(CrawlerRunner.iterationsCounter >= CrawlerRunner.iterationMax || CrawlerRunner.totalCrawled >= CrawlerRunner.totalMax)
+                if(CrawlerRunner.iterationsCounter >= CrawlerRunner.iterationMax)
                     return -1;
             }
         }
