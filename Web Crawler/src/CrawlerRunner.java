@@ -12,8 +12,8 @@ public class CrawlerRunner
     public static Vector <Anchor> Crawled = null;
     public static Vector <Anchor> Crawling = null;
 
-    public static int totalMax = 50;
-    public static int HighPriorityLinks = 50;
+    public static int totalMax = 5000;
+    public static int HighPriorityLinks = 100;
     public static int iterationsCounter = 0;
     public static int iterationMax = 0;
 
