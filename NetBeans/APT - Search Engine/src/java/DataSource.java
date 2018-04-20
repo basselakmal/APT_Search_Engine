@@ -37,6 +37,7 @@ public class DataSource {
             config.setMinConnectionsPerPartition(10);
             config.setMaxConnectionsPerPartition(20);
             config.setPartitionCount(10);
+            config.setAcquireIncrement(10);
             // setup the connection pool
             connectionPool = new BoneCP(config);
         } catch (Exception e) {
