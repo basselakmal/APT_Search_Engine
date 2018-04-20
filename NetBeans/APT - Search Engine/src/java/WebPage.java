@@ -23,6 +23,8 @@ public class WebPage {
     private Elements MetaTags;
     private DB_Manager DB_Man = new DB_Manager();
     private Utilities Utl = new Utilities();
+    
+    private int TokensCount = 0;
 
     /* Constructor used for crawling */
     public WebPage(String domainURL) throws IOException {
@@ -76,7 +78,7 @@ public class WebPage {
 
     public void insertToDatabase()
     {
-        String sqlQuery = "INSERT INTO indexed_pages (domainURL, Title, Keywords, Description) VALUES ('" + domainURL + "', '" + Title +"', '" + Keywords +"', '" + Description +"');";
+        String sqlQuery = "INSERT INTO indexed_pages (domainURL, Title, Keywords, Description, TokensCount) VALUES ('" + domainURL + "', '" + Title +"', '" + Keywords +"', '" + Description +"', " + TokensCount+");";
         DB_Man.executeNonQuery(sqlQuery);
     }
 
@@ -110,12 +112,13 @@ public class WebPage {
 
         HashSet<String> Tokens = new HashSet(BodyList);
         Tokens.removeAll(stopWords);
-
+        
         for(String token : Tokens)
         {
             int Occurrences = Collections.frequency(BodyList, token);
             if(Occurrences == 0)
                 continue;
+            TokensCount += Occurrences;
             DB_Man.executeNonQuery("INSERT INTO Inverted_File (Token, Count, URL) VALUES('" + token + "', " + Occurrences + ", '" + domainURL.toString() + "');");
         }
     }
