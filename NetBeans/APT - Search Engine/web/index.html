@@ -1,15 +1,23 @@
 <!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
 <html>
-    <head></head>
-    <body bgcolor="#f0f0f0" align="center">
-	<h1 align="center"> Query Process </h1>
-        <textarea rows="12" cols="40" name="Query" form="QueryProcess" placeholder="Enter a Word ..."></textarea>
-        <br>
-        <br>	
-        <form action="QueryProcess" method="GET" id="QueryProcess">
-            <br>
-            <br>
-            <input type="submit" value="Search" />
-        </form>		
+    <head>
+        <title>APT Search Engine</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+    <center>
+                <div>
+                    <form action="Search" method="GET">
+                        <input type ="text" name="searchQuery">
+                        <input type="submit" value="Search">
+                    </form>
+                </div>
+    </center>
     </body>
 </html>
