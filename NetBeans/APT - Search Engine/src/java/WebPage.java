@@ -105,14 +105,19 @@ public class WebPage {
         Body = Body.replaceAll("[^a-zA-Z ]|(  )+", "");
         String[] BodyArray = Body.split(" ");
 
-        for(int i=0; i< BodyArray.length; i++)
-            BodyArray[i] = new Stemmer().stem(BodyArray[i]);
-
-        List BodyList = Arrays.asList(BodyArray);
-
-        HashSet<String> Tokens = new HashSet(BodyList);
-        Tokens.removeAll(stopWords);
+        ArrayList<String> BodyList = new ArrayList<String>();
+        BodyList.addAll(Arrays.asList(BodyArray));
         
+        BodyList.removeAll(stopWords);
+        
+        for(int i=0; i< BodyList.size(); i++){
+            String stemmedString =  new Stemmer().stem((String)BodyList.get(i));
+            BodyList.add(i, stemmedString);
+            BodyList.remove(i + 1);
+        }
+        
+        HashSet<String> Tokens = new HashSet(BodyList);
+
         for(String token : Tokens)
         {
             int Occurrences = Collections.frequency(BodyList, token);
