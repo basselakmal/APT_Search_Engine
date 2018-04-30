@@ -27,7 +27,7 @@ public class WebCrawler extends Thread {
             }
             catch (Exception e)
             {
-                //System.out.println("Error: " + e.getMessage());
+                System.out.println("Error: " + e.getMessage());
                 //synchronized (CrawlerRunner.Crawling){
                  //   if(CrawlerRunner.Crawling.size() > 0)
                  //       CrawlerRunner.Crawling.removeElementAt(0);
@@ -104,7 +104,6 @@ public class WebCrawler extends Thread {
         }
         synchronized (CrawlerRunner.Crawled){
 
-            CrawlerRunner.iterationsCounter++;
             if(!isCrawled(link)){
                 if (CrawlerRunner.nIterations > 0 && !link.isHighPriority())
                     return 0;
@@ -115,6 +114,8 @@ public class WebCrawler extends Thread {
                 }
                 CrawlerRunner.Crawled.add(link);
                 DB_Man.updateCrawledStatus(link);
+                CrawlerRunner.iterationsCounter++;
+
                 System.out.println("Thread " + Thread.currentThread().getName() + " processed link: " + link.getAnchorURL());
                 if(CrawlerRunner.iterationsCounter >= CrawlerRunner.iterationMax)
                     return -1;
