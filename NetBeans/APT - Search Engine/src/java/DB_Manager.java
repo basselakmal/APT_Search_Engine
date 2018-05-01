@@ -312,5 +312,95 @@ public class DB_Manager {
         }
         return result;
     }
+      public boolean insertQueryWords(String queryWords,PrintWriter out) throws PropertyVetoException, SQLException, IOException, ClassNotFoundException {
+  
+        insertEachWord(queryWords,out);
+      //  out.println("Mylength is " + queryWords.split(" ").length);
+        if(queryWords.split(" ").length > 1)
+            insertStatement(queryWords,out);
+        return true;
+   }
+   public void insertEachWord(String queryWords,PrintWriter out)
+   {     
+       String[] tokens = queryWords.split(" ");
+
+        for(String word : tokens)
+        {
+           try {
+                   // out.println(word + "<br>");
+               
+               //search for word in the database
+               //if found --> update
+               //else insert
+               String sqlQuery = "SELECT `count` FROM `query_words` WHERE `word` = '" + word + "';" ;
+               
+               Object obj = executeScalar(sqlQuery);
+               if(obj != null)
+               {
+                   //Word exist --> Update
+                   int count = Integer.parseInt(obj.toString());
+                   count++;
+                   //      out.println("Count " + count);
+                   sqlQuery = "UPDATE `query_words` SET  `count` =" + count + " WHERE  `word` = '" + word + "';";
+                   executeNonQuery(sqlQuery);
+               }  else
+               {
+                   //Word doesn't exist --> Insert
+                   sqlQuery = "INSERT INTO query_words (`word`,`count`) VALUES ('"+ word + "'," + 1 +   ")";
+                   executeNonQuery(sqlQuery);
+                   
+                   //   out.println("Obj null");
+                   
+                   
+               }
+           } catch (PropertyVetoException ex) {
+               Logger.getLogger(DB_Manager.class.getName()).log(Level.SEVERE, null, ex);
+           } catch (SQLException ex) {
+               Logger.getLogger(DB_Manager.class.getName()).log(Level.SEVERE, null, ex);
+           } catch (IOException ex) {
+               Logger.getLogger(DB_Manager.class.getName()).log(Level.SEVERE, null, ex);
+           } catch (ClassNotFoundException ex) {
+               Logger.getLogger(DB_Manager.class.getName()).log(Level.SEVERE, null, ex);
+           }
+
+        }
+       
+   }
+   public void insertStatement(String queryWords,PrintWriter out)
+   {
+           
+        try {
+            String sqlQuery = "SELECT `count` FROM `query_words` WHERE `word` = '" + queryWords + "';" ;
+          //  out.println(queryWords);
+            Object obj = executeScalar(sqlQuery);
+            if(obj != null)
+            {
+                //Word exist --> Update
+                int count = Integer.parseInt(obj.toString());
+                count++;
+                //     out.println("Count " + count);
+                sqlQuery = "UPDATE `query_words` SET  `count` =" + count + " WHERE  `word` = '" + queryWords + "';";
+                executeNonQuery(sqlQuery);
+            }  else
+            {
+                //Word doesn't exist --> Insert
+                
+                                //     out.println("Count " + 1);
+                sqlQuery = "INSERT INTO query_words (`word`,`count`) VALUES ('"+ queryWords + "'," + 1 +   ")";
+                executeNonQuery(sqlQuery);
+                        //             out.println(sqlQuery);
+
+                
+            }
+        } catch (PropertyVetoException ex) {
+            Logger.getLogger(DB_Manager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException ex) {
+            Logger.getLogger(DB_Manager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(DB_Manager.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(DB_Manager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+   }
 
 }
