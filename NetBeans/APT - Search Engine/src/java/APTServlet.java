@@ -35,12 +35,22 @@ public class APTServlet extends HttpServlet {
         DB_Manager DB_Man = new DB_Manager();
         Vector<Page> Pages = DB_Man.getPages(Tokens, isPhrase);
         
-        //Kero
-        processRequest(request, response, Pages);
+        try {
+                //Kero
+                processRequest(request, response, Pages);
+            } catch (PropertyVetoException ex) {
+                Logger.getLogger(APTServlet.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException ex) {
+                Logger.getLogger(APTServlet.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(APTServlet.class.getName()).log(Level.SEVERE, null, ex);
+            }
         
     }
     
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response, Vector<Page> Pages) throws IOException{
+    protected void processRequest(HttpServletRequest request, HttpServletResponse response, Vector<Page> Pages) throws IOException, PropertyVetoException, SQLException, ClassNotFoundException{
+    
+
         //Print Pages on the screen.
         
         //For testing only, printing the top 10 results on html page.
@@ -49,14 +59,84 @@ public class APTServlet extends HttpServlet {
 
             out.println("<!DOCTYPE html>");
             out.println("<html>");
-            out.println("<head>");
-            out.println("<title>APT Search Engine</title>");            
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Number of found pages: " + String.valueOf(Pages.size()) + "</h1><br>");
-            for(int i=0; i<10; i++)
-                out.println(Pages.get(i).printInfo().replace("\n", "<br>") + "<br>");
+              
+            out.println(" <head>\n" +
+"        <title>APT Search Engine</title>\n" +
+"        <meta charset=\"UTF-8\">\n" +
+"        <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
+"        <script type=\"text/javascript\" src = querySuggestion.js></script>\n" +
+"            	<link rel=\"stylesheet\" href=\"css/bootstrap.css\">\n" +
+"		<link rel=\"stylesheet\" href=\"css/style.css\">\n" +
+"		<script src=\"js/jquery.js\"></script>\n" +
+"		<script src=\"js/bootstrap.js\"></script>\n" +
+"              <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js\"></script>\n" +
+"  <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js\"></script>\n" +
+"  <script src=\"//cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.6.3/js/bootstrap-select.min.js\"></script>\n" +
+"    </head>");
             
+                        String searchQuery = request.getParameter("searchQuery");
+
+            out.println("<body style=\"background-color: #eee;\" onload = \"init()\" >        \n" +
+"        <nav class=\"navbar navbar-expand-lg navbar-light bg-light navbar-custom \">\n" +
+"			<div class=\"container-fluid\">\n" +
+"				\n" +
+"				<ul class=\"nav navbar-nav navbar-left\">\n" +
+"				<li><a href=\"\">Home</a></li>\n" +
+"					<li><a href=\"\">Images</a></li>\n" +
+"					<li><a href=\"\">Videos</a></li>\n" +
+"				</ul>\n" +
+"			</div>\n" +
+"		\n" +
+"		</nav><center>\n" +
+"                            <img src=\"Images/logo.PNG\" width=\"250\" style=\"margin-top: 10px;\" alt=\"Logo\">\n" +
+"<div class = \"jumbotron\" style='padding-bottom:0px; margin-bottom:0px;'>\n" +
+"                    <form action=\"Search\" autocomplete=\"off\" method=\"GET\" id = \"Search\"> \n" +
+"                        <input type=\"text\"  value = '" + searchQuery +"' name=\"searchQuery\" id = \"searchQuery\"  list =\"suggestions\" onkeyup = \"showSuggestion()\">\n" +
+"                        <input type=\"submit\"  value=\"Search\"><br>\n" +
+"                        <datalist id = \"suggestions\">\n" +
+"\n" +
+"                        </datalist>  " +
+"                    </form>\n" +
+"                </div>\n" +
+" " +
+"    </center>");
+
+                  //  searchQuery = searchQuery.replace("'","");
+
+                      //  out.println(searchQuery);
+
+            //Add query words to database
+               DB_Manager db = new DB_Manager();
+               db.insertQueryWords(searchQuery,out);
+
+         //   out.println(searchQuery);
+
+         int numberOfPages = Pages.size();
+         int pagination = (int) Math.ceil (numberOfPages / 10.0);
+         // int pagination = (numberOfPages / 10);
+          String index = request.getParameter("index");
+                int indexNumber = 0;
+                if(index != null)
+                    indexNumber = Integer.parseInt(index);
+
+               // out.println(indexNumber);
+                      out.println(" There are " + numberOfPages + " pages retrieved <br>");
+            
+          for(int i=0; i<10; i++)
+            {
+                if(Pages.size() > (indexNumber * 10) + i)
+                   out.println( "<br>" + Pages.get((indexNumber * 10) + i).printInfo().replace("\n", "<br>") + "<br>");
+            }
+    
+            out.print("<center>");
+            for (int i =1; i <= pagination ; i++)
+            {
+               if((i-1) == indexNumber)
+                    out.print("<a style='color:red;' font-size:16px; href ='Search?searchQuery=" + searchQuery +  "&index=" + String.valueOf(i-1) + "'>" + String.valueOf(i) + "</a>&emsp;");
+               else
+                    out.print("<a style='font-size:16px;' href ='Search?searchQuery=" + searchQuery +  "&index=" + String.valueOf(i-1) + "'>" + String.valueOf(i) + "</a>&emsp;");
+            }
+            out.print("</center>");
             out.println("</body>");
             out.println("</html>");     
         }
