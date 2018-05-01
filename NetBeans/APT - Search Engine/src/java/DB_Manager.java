@@ -1,9 +1,12 @@
 
 import java.beans.PropertyVetoException;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.sql.*;
 import java.util.HashMap;
 import java.util.Vector;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class DB_Manager {
 
