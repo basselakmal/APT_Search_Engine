@@ -24,16 +24,16 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(urlPatterns = {"/Search"})
 public class APTServlet extends HttpServlet {
    
+    private boolean isPhrase = false;
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
         //Fady
         Vector<String> Tokens = getTokens(request);           
         
         //Bassel
         DB_Manager DB_Man = new DB_Manager();
-        Vector<Page> Pages = DB_Man.getPages(Tokens);
+        Vector<Page> Pages = DB_Man.getPages(Tokens, isPhrase);
         
         //Kero
         processRequest(request, response, Pages);
@@ -53,7 +53,7 @@ public class APTServlet extends HttpServlet {
             out.println("<title>APT Search Engine</title>");            
             out.println("</head>");
             out.println("<body>");
-            
+            out.println("<h1>Number of found pages: " + String.valueOf(Pages.size()) + "</h1><br>");
             for(int i=0; i<10; i++)
                 out.println(Pages.get(i).printInfo().replace("\n", "<br>") + "<br>");
             
@@ -76,39 +76,31 @@ public class APTServlet extends HttpServlet {
             if (query.startsWith("\"") && query.endsWith("\""))
             {
                 query = query.substring(1,query.length()-1); //remove the quotations from the input
-                //put the elements of in input in order and retrieve from the database in order 
-                //example :- "Search Engine Implementation"
-                //Get => Search followerd by Engine followed by Implementation
-                query = query.replaceAll("[^a-zA-Z ]|(  )+", "");           
-                String[] BodyArray = query.split(" ");                      // split words
-                
-                for(String Token : BodyArray)
-                    Tokens.add(Token);
-                
+                isPhrase = true;
             }
-            else //Else it is just a normal search input
-            {
-                //put the elements of in input in order and retrieve from the database in order 
-                //example :- "Search Engine Implementation"
-                //Get => Search followerd by Engine followed by Implementation
-                query = query.replaceAll("[^a-zA-Z ]|(  )+", "");           
-                String[] BodyArray = query.split(" ");                      // split words
-                
-                
-                List TokenList = Arrays.asList(BodyArray);
+            else
+                isPhrase = false;
 
-                HashSet<String> TokensSet = new HashSet(TokenList);
-                HashSet<String> StemmedTokens = new HashSet();
-                TokensSet.removeAll(stopWords);
-                
-                for(String Token : TokensSet)      //stem words
+            //put the elements of in input in order and retrieve from the database in order 
+            //example :- "Search Engine Implementation"
+            //Get => Search followerd by Engine followed by Implementation
+            query = query.replaceAll("[^a-zA-Z ]|(  )+", "");           
+            String[] BodyArray = query.split(" ");                      // split words
 
-                    StemmedTokens.add(new Stemmer().stem(Token));
-                        
-                for(String Token : StemmedTokens)
-                    Tokens.add(Token);
-            }
-        }   
+
+            List TokenList = Arrays.asList(BodyArray);
+
+            HashSet<String> TokensSet = new HashSet(TokenList);
+            HashSet<String> StemmedTokens = new HashSet();
+            TokensSet.removeAll(stopWords);
+
+            for(String Token : TokensSet)      //stem words
+
+                StemmedTokens.add(new Stemmer().stem(Token));
+
+            for(String Token : StemmedTokens)
+                Tokens.add(Token);            
+        }  
         
         return Tokens;        
     }
