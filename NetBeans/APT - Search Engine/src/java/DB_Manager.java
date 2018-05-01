@@ -218,14 +218,15 @@ public class DB_Manager {
         return result;
     }
 
-    public Vector<Page> getPages(Vector<String> Tokens){
+    public Vector<Page> getPages(Vector<String> Tokens, boolean isPhrase){
 
         Vector<Page> Pages = new Vector<Page>();
         HashMap<String, Double> URL_Map = new HashMap<>();
         HashMap<String, Double> Rank_Map = new HashMap<>();
         HashMap<String, String> Title_Map = new HashMap<>();
         HashMap<String, String> Description_Map = new HashMap<>();
-
+        HashMap<String, Integer> MatchedTokens_Map = new HashMap<>();
+        
         for(String token : Tokens){
             Connection conn = null;
             PreparedStatement stmt = null;
@@ -257,9 +258,14 @@ public class DB_Manager {
                             Rank_Map.put(URL, PageRank);
                             Title_Map.put(URL, Title);
                             Description_Map.put(URL, Description);
+                            MatchedTokens_Map.put(URL, 1);
                         }
                         else
+                        {
                             URL_Map.put(URL, TF_IDF + OLD_TF_IDF);
+                            MatchedTokens_Map.put(URL, MatchedTokens_Map.get(URL) + 1);
+                        }
+                            
                     }
                 }
 
@@ -279,12 +285,21 @@ public class DB_Manager {
         Utilities utl = new Utilities();
 
         for(String URL : URL_Map.keySet())
-            Pages.add(new Page(URL, URL_Map.get(URL), Rank_Map.get(URL), Title_Map.get(URL), Description_Map.get(URL)));
+        {
+            if(isPhrase){
+                if(MatchedTokens_Map.get(URL) == Tokens.size())
+                    Pages.add(new Page(URL, URL_Map.get(URL), Rank_Map.get(URL), Title_Map.get(URL), Description_Map.get(URL)));
+            }
+            else
+                Pages.add(new Page(URL, URL_Map.get(URL), Rank_Map.get(URL), Title_Map.get(URL), Description_Map.get(URL)));
+        }
 
         Utilities util = new Utilities();
 
+        
         Pages = util.SortPages(Pages, "PageRank");
         Pages = util.SortPages(Pages, "TF_IDF");
+        
 
         return Pages;
     }
