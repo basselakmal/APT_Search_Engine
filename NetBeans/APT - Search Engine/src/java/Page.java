@@ -36,14 +36,13 @@ public class Page {
 
 
     // This method is used for testing only.
-    public String printInfo(){
-        String result ="";
-        result += "URL: " + URL;
-        result += "\nTF IDF: " + TF_IDF;
-        result += "\nRank: " + PageRank;
-        result += "\nTitle: " + Title;
-        result += "\nDescription: " + Description;
-        result += "\n***********************************************\n";
+   public String printInfo(){
+        String result ="<table>";
+        result += "<tr><td><a href = '" +  URL + "'>" + Title + "</a></td></tr>";
+        if(Description != null)
+            result += "<tr><td><div>" + Description +"</div></td></tr>";
+        result += "<tr><td style='color:green; font-style:italic'>" + URL + "</td></tr>";
+        result += "</table><br>";
         return result;
     }
 
