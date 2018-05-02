@@ -38,7 +38,10 @@ public class Page {
     // This method is used for testing only.
    public String printInfo(){
         String result ="<table>";
-        result += "<tr><td><a href = '" +  URL + "'>" + Title + "</a></td></tr>";
+        if(Title.equals(""))
+            result += "<tr><td><a href = '" +  URL + "'>" + URL + "</a></td></tr>";
+        else
+            result += "<tr><td><a href = '" +  URL + "'>" + Title + "</a></td></tr>";
         if(Description != null)
             result += "<tr><td><div>" + Description +"</div></td></tr>";
         result += "<tr><td style='color:green; font-style:italic'>" + URL + "</td></tr>";
