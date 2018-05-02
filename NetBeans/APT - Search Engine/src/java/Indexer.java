@@ -1,46 +1,43 @@
-import java.util.HashSet;
-import java.util.Scanner;
 import java.util.Vector;
 
-public class IndexerRunner {
+public class Indexer extends Thread{
 
-    public static Vector<Object> domainURLs = new Vector<Object>();
-    public static HashSet<Object> processingURLs = new HashSet<Object>();
+    public void run()
+    {
+        while (true){
 
-    public static void main(String[] args){
-        System.out.print("Please enter the number of threads: ");
-        Scanner MyScanner = new Scanner(System.in);
-        int nThreads = MyScanner.nextInt();
+            try {
+                String domainURL = null;
+                domainURL = getURL();
+                if(domainURL == null)
+                    continue;
 
-        for(int i=0; i< nThreads; i++){
-            Thread indexer = new Indexer();
-            indexer.setName("Indexer " + (i+1));
-            indexer.start();
-        }
-
-        while(true){
-            while(domainURLs.size()>0){}
-            fetchDomainURLs();
-        }
-    }
-
-    private synchronized static void fetchDomainURLs(){
-        try
-        {
-            DB_Manager DB_Man = new DB_Manager();
-            Vector<Object>tempDomainURLs = DB_Man.getColumnData("domainURL", "SELECT domainURL FROM crawled_pages WHERE isIndexed=0 AND isCrawled=1;");
-
-            for(int i=0; i<tempDomainURLs.size(); i++){
-                if(!processingURLs.add(tempDomainURLs.get(i))){
-                    tempDomainURLs.removeElementAt(i);
-                    i--;
+                WebPage webPage = new WebPage(domainURL);
+                webPage.parseDocument();
+                webPage.tokenizePage();
+                webPage.insertToDatabase();
+                webPage.updateIndexedStatus();
+                System.out.println("Thread: " + Thread.currentThread().getName() + " indexed the following:");
+                webPage.printInfo();
+                synchronized (IndexerRunner.processingURLs){
+                    IndexerRunner.processingURLs.remove(domainURL);
                 }
             }
-            domainURLs = tempDomainURLs;
-        }
-        catch(Exception e)
-        {
-            //System.out.println("Indexer Fetching URLs Error: " + e.getMessage());
+            catch(Exception e)
+            {
+                System.out.println("Indexer Error: " + e.getMessage());
+            }
+    }
+    }
+
+    public String getURL(){
+        synchronized (IndexerRunner.domainURLs){
+            String domainURL = null;
+            if(IndexerRunner.domainURLs.size() > 0){
+                domainURL = IndexerRunner.domainURLs.get(0).toString();
+                IndexerRunner.domainURLs.removeElementAt(0);
+            }
+            return domainURL;
         }
     }
 }
