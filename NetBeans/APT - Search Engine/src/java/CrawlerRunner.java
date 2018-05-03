@@ -33,13 +33,11 @@ public class CrawlerRunner
             }
 
             while(true){
-                while(iterationsCounter < iterationMax){
+                while(Crawled.size() < totalMax){
                     //System.out.println(iterationsCounter + " : " + iterationMax);
                     Thread.sleep(200);
                 }
-                //System.out.println("Iterations Counter: " + String.valueOf(iterationsCounter));
-                //System.out.println("Iterations Max: " + String.valueOf(iterationsCounter));
-                System.out.println("Finished an Iteration!\n");
+
                 nIterations ++;
                 RestartCrawler();
             }
