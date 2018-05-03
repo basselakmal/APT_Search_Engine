@@ -27,12 +27,7 @@ public class WebCrawler extends Thread {
             }
             catch (Exception e)
             {
-                System.out.println("Error: " + e.getMessage());
-                //synchronized (CrawlerRunner.Crawling){
-                 //   if(CrawlerRunner.Crawling.size() > 0)
-                 //       CrawlerRunner.Crawling.removeElementAt(0);
-                //    continue;
-               // }
+                //System.out.println("Error: " + e.getMessage());
             }
         }
     }
@@ -90,7 +85,7 @@ public class WebCrawler extends Thread {
 
 
         for (String Link : linksSet) {
-            if(CrawlerRunner.iterationsCounter >= CrawlerRunner.iterationMax)
+            if(CrawlerRunner.Crawled.size() >= CrawlerRunner.totalMax)
                 return -1;
 
             Anchor tempAnchor = new Anchor(domainURL, Link);
@@ -112,13 +107,14 @@ public class WebCrawler extends Thread {
                     DB_Man.updatePriority(link);
                     link.setHighPriority();
                 }
-                CrawlerRunner.Crawled.add(link);
-                DB_Man.updateCrawledStatus(link);
-                CrawlerRunner.iterationsCounter++;
-
-                System.out.println("Thread " + Thread.currentThread().getName() + " processed link: " + link.getAnchorURL());
-                if(CrawlerRunner.iterationsCounter >= CrawlerRunner.iterationMax)
+                
+                if(CrawlerRunner.Crawled.size() >= CrawlerRunner.totalMax)
                     return -1;
+                
+                if(DB_Man.updateCrawledStatus(link))
+                    CrawlerRunner.Crawled.add(link);
+
+                System.out.println("Thread " + Thread.currentThread().getName() + " processed link: " + link.getAnchorURL());                
             }
         }
         return 0;
