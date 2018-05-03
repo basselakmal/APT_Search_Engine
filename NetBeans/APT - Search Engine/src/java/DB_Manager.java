@@ -177,10 +177,10 @@ public class DB_Manager {
         return Crawling;
     }
 
-    public synchronized void updateCrawledStatus(Anchor CrawledPage)
+    public synchronized boolean updateCrawledStatus(Anchor CrawledPage)
     {
         /* Update the crawled anchor to the database */
-        executeNonQuery("UPDATE crawled_pages SET isCrawled = 1 WHERE domainURL = '" + CrawledPage.getAnchorURL() + "'");
+        return executeNonQuery("UPDATE crawled_pages SET isCrawled = 1 WHERE domainURL = '" + CrawledPage.getAnchorURL() + "'");
     }
 
     public void InsertCrawling(Anchor CrawlingPage)
